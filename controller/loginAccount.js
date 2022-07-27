@@ -57,6 +57,7 @@ function LoginControl(req, res) {
                   location: '/user'
               });
               return res.end();
+              
               }
             }
           });
