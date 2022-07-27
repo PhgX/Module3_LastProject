@@ -318,6 +318,18 @@ const server = http.createServer((req, res) => {
 
         break;
       }
+      case '/cart' : {
+        fs.readFile('views/home/cart.html', 'utf-8', (err, data) => {
+          if (err) {
+              console.log(err);
+          } else {
+              res.writeHead(200, {'Content-Type': 'text/html'});
+              res.write(data);
+              return res.end();
+          }
+      });
+        break
+      }
     }
   }
 });
