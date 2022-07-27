@@ -3,7 +3,8 @@ const qs = require("qs");
 
 const Connection = require("../model/connection.js");
 
-let connection = Connection.createConnection({multipleStatements: true});
+let connection = Connection.createConnection();
+
 function LoginControl(req, res) {
   let data = "";
   req.on("data", (chunk) => (data += chunk));
@@ -48,21 +49,27 @@ function LoginControl(req, res) {
               if (role === 1) {
                 console.log("Tài khoản Admin");
                 res.writeHead(301, {
-                  location: `/admin?id=${userId}`
-              });
-              return res.end();
+                  location: `/admin?id=${userId}`,
+                });
+                return res.end();
               } else if (role === 2) {
-                console.log("Tài khoản User");
-                res.writeHead(301, {
-                  location: `/user?id=${userId}`
-              });
-              let queryInsertOrder = `insert into orders(user_id,total) values (${userId},0)`
-              connection.query(queryInsertOrder,(err,data) => {
-    
-                let parse = qs.parse(data);
-                let orderId = parse.insertId;
-              })
-              return res.end();
+                function getOrderId(userId, callback) {
+                  let queryInsertOrder = `insert into orders(user_id,total) values (${userId},0)`;
+                  connection.query(queryInsertOrder, (err, data) => {
+                    let parse = qs.parse(data);
+                    let orderId = parse.insertId;
+                    console.log(orderId);
+                    callback(userId,orderId);
+                  });
+                }
+                function saveOrderId(userId,orderId) {
+                  console.log("Tài khoản User");
+                  res.writeHead(301, {
+                    location: `/user?id=${userId}`,
+                  });
+                  return res.end();
+                }
+                getOrderId(userId, saveOrderId);
               }
             }
           });
@@ -72,4 +79,4 @@ function LoginControl(req, res) {
   });
 }
 
-  module.exports.LoginControl = LoginControl;
+module.exports.LoginControl = LoginControl;
