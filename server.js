@@ -5,6 +5,7 @@ const qs = require("qs");
 const checkRegister = require("./controller/signup");
 const Connection = require("./model/connection");
 const LoginControl = require('./controller/loginAccount');
+const ProductModel = require('./model/ProductModel')
 
 let connection = Connection.createConnection({ multipleStatements: true });
 const mimeTypes = {
@@ -153,15 +154,39 @@ const server = http.createServer((req, res) => {
         break;
       }
       case "/admin": {
-        fs.readFile("./views/home/admin.html", "utf-8", (err, data) => {
-          if (err) {
-            console.log(err);
-          } else {
-            res.writeHead(200, { "Content-Type": "text/html" });
-            res.write(data);
-            return res.end();
-          }
-        });
+         ProductModel.getProduct()
+            .then(listProduct=>{
+              fs.readFile("./views/home/admin.html", "utf-8",  (err, data) => {
+                if (err) {
+                  console.log(err);
+                } else {
+
+                  let html = '';
+                  listProduct.forEach((product, index) => {
+                    html += '<tr>'
+                    html += `<td >${product.id}</td>`
+                    html += `<td >${product.name}</td>`
+                    html += `<td>${product.price}</td>`
+
+                    html += `<td>
+                                <button type="button" value="${product.id}" class="btn btn-danger"> <a href="/products/delete?id=${product.id}">Delete</a></button>
+               
+                                <button type="button" value="${product.id}" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
+                            </td>`
+
+                    html += '</tr>'
+                  })
+                  data = data.replace('{list-products}', html)
+                  res.writeHead(200, {"Content-Type": "text/html"})
+                  res.write(data)
+                  res.end();
+                }
+
+              })
+
+
+
+            })
         break;
       }
       case "/user": {
