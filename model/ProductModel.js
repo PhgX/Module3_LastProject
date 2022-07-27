@@ -3,10 +3,10 @@ const Connection = require('./connection').createConnection()
 module.exports = class ProductModel {
 
 
-    static getProduct() {
+     getProduct() {
         return new Promise((resolve, reject) => {
-            let sql = `select p.id, p.name, p.price
-                       from products p
+            let sql = `SELECT p.id, p.name, p.price
+                       FROM products p
             `
             Connection.query(sql, (err, result) => {
                 if (err) {
@@ -17,12 +17,10 @@ module.exports = class ProductModel {
         })
     }
 
-    static deleteProduct(index) {
+     deleteProduct(index) {
         return new Promise((resolve, reject) => {
-            // let sql = `delete from orderdetails where product_id = id=${index}`
-            let sql = `delete
-                       from products
-                       where id = ${index}`
+            // let sql = `DeleteProduct(${index});`
+            let sql = `deleteProduct(${index})`
             Connection.query(sql, (err, result) => {
                 if (err) {
                     reject(err)

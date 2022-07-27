@@ -21,8 +21,8 @@ const mimeTypes = {
   ttf: "text/html",
   woff2: "text/html",
   eot: "text/html",
-};
-
+  svg: "image/svg+xml"
+}
 function getCate() {
   return new Promise((resolve, reject) => {
     let queryListCategories = `select name from categories
@@ -53,7 +53,7 @@ function getProducts() {
 
 const server = http.createServer((req, res) => {
   const filesDefences = req.url.match(
-    /\.js|.css|.jpg|.png|.gif|min.js|min.css|.woff|.ttf|.woff2|.eot/
+    /\.js|.css|.jpg|.png|.gif|min.js|min.css|.woff|.ttf|.woff2|.eot|.svg/
   );
   if (filesDefences) {
     let filePath = filesDefences[0].toString();
@@ -189,6 +189,21 @@ const server = http.createServer((req, res) => {
             })
         break;
       }
+        const urlParse = url.parse(req.url, true)
+        case '/products/edit': {
+            let query = qs.parse(urlParse.query);
+            let idUpdate = query.id;
+          console.log(idUpdate);
+            if (method === 'GET') {
+              let productModel;
+              productModel.deleteProduct(req,res)
+            } else {
+              productModel.editProduct();
+
+            }
+            break;
+        }
+
       case "/user": {
         fs.readFile("./views/home/user.html", "utf-8", async (err, data) => {
           if (err) {
