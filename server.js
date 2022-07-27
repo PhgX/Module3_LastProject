@@ -52,6 +52,20 @@ function getProducts() {
     });
   });
 }
+function getOrders(userId) {
+  return new Promise((resolve, reject) => {
+    let queryOrders = `select u.id, p.name, p.price, od.price as total, od.amount
+    from users u join orders o on u.id = o.user_id join orderdetails od on o.id = od.orderid join products p on od.product_id = p.id
+    where u.id = ${userId} ;`;
+    connection.query(queryOrders, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
 
 const server = http.createServer((req, res) => {
   const filesDefences = req.url.match(
@@ -196,6 +210,7 @@ const server = http.createServer((req, res) => {
               let cateText = "";
               let productText = "";
               let topPage = `Welcome user`;
+              let cartText = `<li><a href="/cart?id=${currentUserId}">Cart</a></li>`;
               for (let i = 0; i < categories.length; i++) {
                 let filter = categories[i].name;
                 filter = filter.toLowerCase();
@@ -224,6 +239,7 @@ const server = http.createServer((req, res) => {
                   </div>
               </div>`;
               }
+              data = data.replace("{cart}", cartText);
               data = data.replace("{top-page}", topPage);
               data = data.replace("{catelogies}", cateText);
               data = data.replace("{products}", productText);
@@ -319,10 +335,40 @@ const server = http.createServer((req, res) => {
         break;
       }
       case '/cart' : {
-        fs.readFile('views/home/cart.html', 'utf-8', (err, data) => {
+        let query = qs.parse(urlParse.query);
+        let idUpdate = query.id;
+        currentUserId = idUpdate;
+        let cartText = ``;
+        let continueShoppingText = `<a href="/user?id=${currentUserId}" class="primary-btn cart-btn">CONTINUE SHOPPING</a>`;
+        fs.readFile('views/home/cart.html', 'utf-8', async (err, data) => {
           if (err) {
-              console.log(err);
+              console.log('File NotFound!');
           } else {
+              let product = await getOrders(currentUserId);
+              if (product.length > 0) {
+                for (let i = 0; i < product.length; i++) {
+                  cartText += `<tr>
+                  <td class="shoping__cart__item">
+                      <img src="assets/home/img/product/product-1.jpg" alt="">
+                      <h5>${product[i].name}</h5>
+                  </td>
+                  <td class="shoping__cart__price">
+                      ${product[i].price}
+                  </td>
+                  <td class="shoping__cart__price">
+                      ${product[i].amount}
+                  </td>
+                  <td class="shoping__cart__total">
+                  ${product[i].total}
+                  </td>
+                  <td class="shoping__cart__item__close">
+                      <span class="icon_close"></span>
+                  </td>
+              </tr>`
+                }
+              }
+              data = data.replace("{continue-shopping}", continueShoppingText);
+              data = data.replace("{cart}", cartText);
               res.writeHead(200, {'Content-Type': 'text/html'});
               res.write(data);
               return res.end();
