@@ -7,8 +7,8 @@ const Connection = require("./model/connection");
 const LoginControl = require("./controller/loginAccount");
 const ProductModel = require("./model/ProductModel");
 
-
 let connection = Connection.createConnection({ multipleStatements: true });
+const loginController = new LoginControl();
 const mimeTypes = {
   html: "text/html",
   js: "text/javascript",
@@ -81,13 +81,7 @@ const server = http.createServer((req, res) => {
             let products = await getProducts();
             let cateText = "";
             let productText = "";
-            let topPage = `<div class="header__top__right__auth">
-            <a href="/login"><i class="fa fa-user"></i> Login</a>
-        </div>
-        <div class="header__top__right__auth">
-            <a href="/signup"><i class="fa fa-user"></i> Sign Up</a>
-        </div>`;
-
+            let topPage = ``;
             for (let i = 0; i < categories.length; i++) {
               let filter = categories[i].name;
               filter = filter.toLowerCase();
@@ -133,7 +127,7 @@ const server = http.createServer((req, res) => {
             }
           });
         } else {
-          LoginControl.LoginControl(req, res);
+          loginController.LoginControl(req, res);
         }
         break;
       }
@@ -187,6 +181,7 @@ const server = http.createServer((req, res) => {
         let query = qs.parse(urlParse.query);
         let idUpdate = query.id;
         currentUserId = idUpdate;
+        currentOrderId = loginController.orderId;
         let method = req.method;
         console.log(idUpdate);
         console.log(currentOrderId);
@@ -245,8 +240,29 @@ const server = http.createServer((req, res) => {
           });
           req.on("end", () => {
             let product = qs.parse(data);
-            console.log(product);
-            // let queryInsertOrder
+            let productid = product.productid;
+            let productPrice = 0;
+            let amount = product.amount;
+            function getProductPrice(productid,amount,productPrice,currentOrderId, callback) {
+              let queryGetProductPrice = `select price from products where id = ${productid};`;
+              connection.query(queryGetProductPrice, (err, data) => {
+                let parseData = qs.parse(data[0]);
+                productPrice = parseData.price;
+                callback(amount, productPrice, productid, currentOrderId);
+              });
+            }
+            function insertOrder(
+              amount,
+              productPrice,
+              productid,
+              currentOrderId
+            ) {
+              let price = amount * productPrice;
+              console.log(price);
+              let queryInsertOrder = `insert into orderdetails(product_id,amount,price,orderid) values (${productid},${amount},${price},${currentOrderId});`;
+              connection.query(queryInsertOrder, (err, data) => {});
+            }
+            getProductPrice(productid,amount,productPrice,currentOrderId,insertOrder)
             res.writeHead(301, {
               location: `/user?id=${currentUserId}`,
             });
