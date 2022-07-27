@@ -3,8 +3,9 @@ const http = require("http");
 const url = require("url");
 const qs = require("qs");
 const checkRegister = require("./controller/signup");
-
 const Connection = require("./model/connection");
+const LoginControl = require('./controller/loginAccount');
+const ProductModel = require('./model/ProductModel')
 
 let connection = Connection.createConnection({ multipleStatements: true });
 const mimeTypes = {
@@ -48,66 +49,7 @@ function getProducts() {
     });
   });
 }
-function LoginControl(req, res) {
-  let data = "";
-  req.on("data", (chunk) => (data += chunk));
-  req.on("end", () => {
-    let logindata = qs.parse(data);
-    console.log(logindata);
-    let stringUserName = logindata.username.toString();
-    let userquery = `select * from users where username = '${stringUserName}' and password = '${logindata.password}';`;
 
-    connection.query(userquery, (err, data) => {
-      if (err) {
-        console.log(err);
-      } else {
-        let parseData = qs.parse(data[0]);
-        // console.log(parseData);
-        if (parseData.username == null) {
-          fs.readFile("./views/login/login.html", "utf-8", (err, data) => {
-            if (err) {
-              console.log(err);
-            } else {
-              res.writeHead(200, { "Content-Type": "text/html" });
-
-              let text = `<p style="text-align: center; color: white; font-size: 30px">Tài khoản không tồn tại hoặc nhập sai mật khẩu</p>`;
-              data = data.replace("{here}", text);
-              res.write(data);
-              return res.end();
-            }
-          });
-        } else {
-          let rolequery = `select ur.role_id from users u join userrole ur on u.id = ur.user_id where username = '${stringUserName}' and password = '${logindata.password}';`;
-          connection.query(rolequery, (err, data) => {
-            console.log(parseData);
-            if (err) {
-              console.log(err);
-            } else {
-              // ========================================================
-              // Set quyền cho tài khoản ...............
-              let roleData = qs.parse(data[0]);
-              console.log(roleData);
-              let role = roleData.role_id;
-              if (role === 1) {
-                console.log("Tài khoản Admin");
-                res.writeHead(301, {
-                  location: '/admin'
-              });
-              return res.end();
-              } else if (role === 2) {
-                console.log("Tài khoản User");
-                res.writeHead(301, {
-                  location: '/user'
-              });
-              return res.end();
-              }
-            }
-          });
-        }
-      }
-    });
-  });
-}
 
 const server = http.createServer((req, res) => {
   const filesDefences = req.url.match(
@@ -187,7 +129,7 @@ const server = http.createServer((req, res) => {
             }
           });
         } else {
-          LoginControl(req, res);
+         LoginControl.LoginControl(req, res);
         }
         break;
       }
@@ -212,15 +154,39 @@ const server = http.createServer((req, res) => {
         break;
       }
       case "/admin": {
-        fs.readFile("./views/home/admin.html", "utf-8", (err, data) => {
-          if (err) {
-            console.log(err);
-          } else {
-            res.writeHead(200, { "Content-Type": "text/html" });
-            res.write(data);
-            return res.end();
-          }
-        });
+         ProductModel.getProduct()
+            .then(listProduct=>{
+              fs.readFile("./views/home/admin.html", "utf-8",  (err, data) => {
+                if (err) {
+                  console.log(err);
+                } else {
+
+                  let html = '';
+                  listProduct.forEach((product, index) => {
+                    html += '<tr>'
+                    html += `<td >${product.id}</td>`
+                    html += `<td >${product.name}</td>`
+                    html += `<td>${product.price}</td>`
+
+                    html += `<td>
+                                <button type="button" value="${product.id}" class="btn btn-danger"> <a href="/products/delete?id=${product.id}">Delete</a></button>
+               
+                                <button type="button" value="${product.id}" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
+                            </td>`
+
+                    html += '</tr>'
+                  })
+                  data = data.replace('{list-products}', html)
+                  res.writeHead(200, {"Content-Type": "text/html"})
+                  res.write(data)
+                  res.end();
+                }
+
+              })
+
+
+
+            })
         break;
       }
       case "/user": {
