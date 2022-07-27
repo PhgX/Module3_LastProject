@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+  	<title>Login</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	
+	<link rel="stylesheet" href="assets/login/css/style.css">
+	</head>
+	<body class="img js-fullheight" style="background-image: url(assets/login/images/cat.jpg);">
+	<section class="ftco-section">
+		<div class="container">
+			<div class="row justify-content-center">
+				<div class="col-md-6 text-center mb-5">
+					<h2 class="heading-section">Register Account</h2>
+				</div>
+			</div>
+			<div class="row justify-content-center">
+				<div class="col-md-6 col-lg-4">
+					<div class="login-wrap p-0">
+		      	<h3 class="mb-4 text-center">Dont have an account?</h3>	
+			  <form action="/signup" method="POST" class="signup-form">
+				<div >			
+					<input type="text" name="username" class="form-control" id="username" required placeholder="Tên tài khoản">
+				</div>
+				<div >					
+					<input type="password" name="password" class="form-control" id="password-field" required placeholder="Mật khẩu">
+					<span id="hide" >Mật khẩu dài từ 6 - 8 ký tự, có ít nhất 1 chứ in hoa, 1 chữ thường, 1 ký tự đặc biệt </span>
+					<!-- <span toggle="#password-field" class="fa fa-fw fa-eye field-icon toggle-password"></span>						 -->
+				</div>
+				<div >	
+					<!-- <span toggle="#repassword-field" class="fa fa-fw fa-eye field-icon toggle-password"></span>				 -->
+					<input type="password" name="re_password" class="form-control" id="#repassword-field" required placeholder="Xác nhận mật khẩu">					
+				</div>
+				<div >					
+					<input type="text" name="name" class="form-control" id="name" required placeholder="Họ và tên">
+				</div>
+				<div>
+					
+					<input type="text" name="phone" class="form-control" id="phone" required placeholder="Số điện thoại">
+				</div>
+				<div>
+					
+					<input type="text" name="email" class="form-control" id="email" required placeholder="Email">
+				</div>
+				<div>					
+					<input type="text" name="address" class="form-control" id="address" required placeholder="Địa chỉ">
+				</div>
+				<button type="submit" class="form-control btn btn-primary submit px-3" class="form-group">Sign Up</button>
+			</form> 			       
+		      </div>
+			  <p hidden style="text-align: center;">{here}</p> 
+				</div>
+			</div>
+		</div>
+		
+	</section>
+	<script src="assets/login/js/jquery.min.js"></script>
+  <script src="assets/login/js/popper.js"></script>
+  <script src="assets/login/js/bootstrap.min.js"></script>
+  <script src="assets/login/js/main.js"></script>
+
+	</body>
+</html>
+
