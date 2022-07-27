@@ -4,8 +4,9 @@ const url = require("url");
 const qs = require("qs");
 const checkRegister = require("./controller/signup");
 const Connection = require("./model/connection");
-const LoginControl = require('./controller/loginAccount');
-const ProductModel = require('./model/ProductModel')
+const LoginControl = require("./controller/loginAccount");
+const ProductModel = require("./model/ProductModel");
+
 
 let connection = Connection.createConnection({ multipleStatements: true });
 const mimeTypes = {
@@ -21,8 +22,10 @@ const mimeTypes = {
   ttf: "text/html",
   woff2: "text/html",
   eot: "text/html",
+  svg: "image/avg+xml",
 };
-
+let currentUserId = -1;
+let currentOrderId;
 function getCate() {
   return new Promise((resolve, reject) => {
     let queryListCategories = `select name from categories
@@ -38,7 +41,7 @@ function getCate() {
 }
 function getProducts() {
   return new Promise((resolve, reject) => {
-    let queryProducts = `select p.name, p.price, c.name as catename
+    let queryProducts = `select p.name, p.price, p.id, c.name as catename
       from products p join categories c on p.category_id = c.id;`;
     connection.query(queryProducts, (err, data) => {
       if (err) {
@@ -50,10 +53,9 @@ function getProducts() {
   });
 }
 
-
 const server = http.createServer((req, res) => {
   const filesDefences = req.url.match(
-    /\.js|.css|.jpg|.png|.gif|min.js|min.css|.woff|.ttf|.woff2|.eot/
+    /\.js|.css|.jpg|.png|.gif|min.js|min.css|.woff|.ttf|.woff2|.eot|.svg/
   );
   if (filesDefences) {
     let filePath = filesDefences[0].toString();
@@ -79,6 +81,13 @@ const server = http.createServer((req, res) => {
             let products = await getProducts();
             let cateText = "";
             let productText = "";
+            let topPage = `<div class="header__top__right__auth">
+            <a href="/login"><i class="fa fa-user"></i> Login</a>
+        </div>
+        <div class="header__top__right__auth">
+            <a href="/signup"><i class="fa fa-user"></i> Sign Up</a>
+        </div>`;
+
             for (let i = 0; i < categories.length; i++) {
               let filter = categories[i].name;
               filter = filter.toLowerCase();
@@ -93,12 +102,6 @@ const server = http.createServer((req, res) => {
               productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
             <div class="featured__item">
                 <div class="featured__item__pic set-bg" data-setbg="assets/home/img/featured/feature-1.jpg">
-                    <ul class="featured__item__pic__hover">
-                    <form action="#">
-                    <input type="number"  placeholder="Amount">
-                    <button type="submit" class="site-btn">BUY</button>
-                    </form>
-                    </ul>
                 </div>
                 <div class="featured__item__text">
                     <h6><a href="#">${products[i].name}</a></h6>
@@ -107,6 +110,7 @@ const server = http.createServer((req, res) => {
             </div>
         </div>`;
             }
+            data = data.replace("{top-page}", topPage);
             data = data.replace("{catelogies}", cateText);
             data = data.replace("{products}", productText);
             res.writeHead(200, { "Content-Type": "text/html" });
@@ -129,110 +133,173 @@ const server = http.createServer((req, res) => {
             }
           });
         } else {
-         LoginControl.LoginControl(req, res);
+          LoginControl.LoginControl(req, res);
         }
         break;
       }
       case "/signup": {
         if (req.method === "GET") {
-          fs.readFile(
-            "./views/login/signup.html",
-            "utf-8",
-            (err, data) => {
-              if (err) {
-                console.log(err);
-              } else {
-                res.writeHead(200, { "Content-Type": "text/html" });
-                res.write(data);
-                return res.end();
-              }
+          fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
+            if (err) {
+              console.log(err);
+            } else {
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.write(data);
+              return res.end();
             }
-          );
+          });
         } else {
           checkRegister.SignUpAccount(req, res);
         }
         break;
       }
       case "/admin": {
-         ProductModel.getProduct()
-            .then(listProduct=>{
-              fs.readFile("./views/home/admin.html", "utf-8",  (err, data) => {
-                if (err) {
-                  console.log(err);
-                } else {
+        ProductModel.getProduct().then((listProduct) => {
+          fs.readFile("./views/home/admin.html", "utf-8", (err, data) => {
+            if (err) {
+              console.log(err);
+            } else {
+              let html = "";
+              listProduct.forEach((product, index) => {
+                html += "<tr>";
+                html += `<td >${product.id}</td>`;
+                html += `<td >${product.name}</td>`;
+                html += `<td>${product.price}</td>`;
 
-                  let html = '';
-                  listProduct.forEach((product, index) => {
-                    html += '<tr>'
-                    html += `<td >${product.id}</td>`
-                    html += `<td >${product.name}</td>`
-                    html += `<td>${product.price}</td>`
-
-                    html += `<td>
+                html += `<td>
                                 <button type="button" value="${product.id}" class="btn btn-danger"> <a href="/products/delete?id=${product.id}">Delete</a></button>
                
                                 <button type="button" value="${product.id}" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
-                            </td>`
+                            </td>`;
 
-                    html += '</tr>'
-                  })
-                  data = data.replace('{list-products}', html)
-                  res.writeHead(200, {"Content-Type": "text/html"})
-                  res.write(data)
-                  res.end();
-                }
-
-              })
-
-
-
-            })
+                html += "</tr>";
+              });
+              data = data.replace("{list-products}", html);
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.write(data);
+              res.end();
+            }
+          });
+        });
         break;
       }
       case "/user": {
-        fs.readFile("./views/home/user.html", "utf-8", async (err, data) => {
-          if (err) {
-            console.log(err);
-          } else {
-            let categories = await getCate();
-            let products = await getProducts();
-            let cateText = "";
-            let productText = "";
-            for (let i = 0; i < categories.length; i++) {
-              let filter = categories[i].name;
-              filter = filter.toLowerCase();
-              // if (filter.includes(" ")) {
-              //   filter = filter.replace(" ","-");
-              // }
-              cateText += `<li data-filter=".${filter}">${categories[i].name}</li>`;
+        let query = qs.parse(urlParse.query);
+        let idUpdate = query.id;
+        currentUserId = idUpdate;
+        let method = req.method;
+        console.log(idUpdate);
+        console.log(currentOrderId);
+        if (method === "GET") {
+          console.log("get");
+          fs.readFile("./views/home/user.html", "utf-8", async (err, data) => {
+            if (err) {
+              console.log(err);
+            } else {
+              let categories = await getCate();
+              let products = await getProducts();
+              let cateText = "";
+              let productText = "";
+              let topPage = `Welcome user`;
+              for (let i = 0; i < categories.length; i++) {
+                let filter = categories[i].name;
+                filter = filter.toLowerCase();
+                // if (filter.includes(" ")) {
+                //   filter = filter.replace(" ","-");
+                // }
+                cateText += `<li data-filter=".${filter}">${categories[i].name}</li>`;
+              }
+              for (let i = 0; i < products.length; i++) {
+                let filter = products[i].catename;
+                filter = filter.toLowerCase();
+                productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
+                  <div class="featured__item">
+                      <div class="featured__item__pic set-bg" data-setbg="assets/home/img/featured/feature-1.jpg">
+                          <ul class="featured__item__pic__hover">
+                          <form action="/user?id=${currentUserId}" method = "post">
+                          <input type="number"  placeholder="Amount" name="amount" id="amount" >
+                          <button type="submit" name="productid" value=${products[i].id} class="site-btn">BUY</button>
+                          </form>
+                          </ul>
+                      </div>
+                      <div class="featured__item__text">
+                          <h6><a href="#">${products[i].name}</a></h6>
+                          <h5>${products[i].price} VND</h5>
+                      </div>
+                  </div>
+              </div>`;
+              }
+              data = data.replace("{top-page}", topPage);
+              data = data.replace("{catelogies}", cateText);
+              data = data.replace("{products}", productText);
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.write(data);
+              return res.end();
             }
-            for (let i = 0; i < products.length; i++) {
-              let filter = products[i].catename;
-              filter = filter.toLowerCase();
-              productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
-            <div class="featured__item">
-                <div class="featured__item__pic set-bg" data-setbg="assets/home/img/featured/feature-1.jpg">
-                    <ul class="featured__item__pic__hover">
-                    <form action="#">
-                    <input type="number"  placeholder="Amount">
-                    <button type="submit" class="site-btn">BUY</button>
-                    </form>
-                    </ul>
-                </div>
-                <div class="featured__item__text">
-                    <h6><a href="#">${products[i].name}</a></h6>
-                    <h5>${products[i].price} VND</h5>
-                </div>
-            </div>
-        </div>`;
-            }
-            data = data.replace("{catelogies}", cateText);
-            data = data.replace("{products}", productText);
-            res.writeHead(200, { "Content-Type": "text/html" });
-            res.write(data);
+          });
+        } else {
+          console.log("post");
+          let data = "";
+          req.on("data", (chunk) => {
+            data += chunk;
+          });
+          req.on("end", () => {
+            let product = qs.parse(data);
+            console.log(product);
+            // let queryInsertOrder
+            res.writeHead(301, {
+              location: `/user?id=${currentUserId}`,
+            });
             return res.end();
-          }
-        });
+          });
+
+          fs.readFile("./views/home/user.html", "utf-8", async (err, data) => {
+            if (err) {
+              console.log(err);
+            } else {
+              let categories = await getCate();
+              let products = await getProducts();
+              let cateText = "";
+              let productText = "";
+              let topPage = `Welcome user`;
+              for (let i = 0; i < categories.length; i++) {
+                let filter = categories[i].name;
+                filter = filter.toLowerCase();
+                // if (filter.includes(" ")) {
+                //   filter = filter.replace(" ","-");
+                // }
+                cateText += `<li data-filter=".${filter}">${categories[i].name}</li>`;
+              }
+              for (let i = 0; i < products.length; i++) {
+                let filter = products[i].catename;
+                filter = filter.toLowerCase();
+                productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
+                  <div class="featured__item">
+                      <div class="featured__item__pic set-bg" data-setbg="assets/home/img/featured/feature-1.jpg">
+                          <ul class="featured__item__pic__hover">
+                          <form action="/user?id=${currentUserId}" method = "post">
+                          <input type="number"  placeholder="Amount" name="amount" id="amount" >
+                          <button type="submit" class="site-btn">BUY</button>
+                          </form>
+                          </ul>
+                      </div>
+                      <div class="featured__item__text">
+                          <h6><a href="#">${products[i].name}</a></h6>
+                          <h5>${products[i].price} VND</h5>
+                      </div>
+                  </div>
+              </div>`;
+              }
+              data = data.replace("{top-page}", topPage);
+              data = data.replace("{catelogies}", cateText);
+              data = data.replace("{products}", productText);
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.write(data);
+              return res.end();
+            }
+          });
+        }
+
         break;
       }
     }
