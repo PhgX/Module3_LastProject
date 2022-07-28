@@ -189,21 +189,65 @@ const server = http.createServer((req, res) => {
             })
         break;
       }
-        const urlParse = url.parse(req.url, true)
-        case '/products/edit': {
-            let query = qs.parse(urlParse.query);
-            let idUpdate = query.id;
-          console.log(idUpdate);
-            if (method === 'GET') {
-              let productModel;
-              productModel.deleteProduct(req,res)
-            } else {
-              productModel.editProduct();
+      case "/products/delete": {
+        // b1: tìm id xoá
 
+//lấy toàn bộ url /product/delete?id = `${product.id};
+        const parseUrl = url.parse(req.url, true);
+        // lấy sau dấu ? và biến chuỗi query thành object {id:product.id}
+        let  queryString = qs.parse(parseUrl.query);
+        //lấy ra id xoá
+        const idDelete = queryString.id
+
+
+        //b2: lấy dc id xoá, tiến hành xoá trong csdl
+
+        ProductModel.deleteProduct( idDelete)
+            .then(result=>{
+          console.log(result);
+            })
+            .catch()
+        //b3: render lại giao diện.
+        res.writeHead(301,{location: '/admin'});
+        res.end();
+
+
+
+        break;
+      }
+
+      case "/products/update": {
+
+
+        if(req.method === "GET"){
+          fs.readFile('./views/home/update.html', "utf-8",(err,data)=>{
+            if(err){
+              console.log(err);
             }
-            break;
-        }
+            res.writeHead(200, { "Content-Type": "text/html" });
+            res.write(data);
+            res.end();
 
+          })
+        }
+         else{
+           //tim id update
+          const parseUrl = url.parse(req.url, true)
+          let  idUpdate=qs.parse(parseUrl.query).id;
+          // lay id update sua trong co so su lieu
+
+
+
+          ProductModel.updateProduct(idUpdate)
+              .then()
+              .catch()
+        }
+         //render giao dien
+        res.writeHead(301,{location: '/admin'});
+        res.end();
+
+        break;
+      }
       case "/user": {
         fs.readFile("./views/home/user.html", "utf-8", async (err, data) => {
           if (err) {

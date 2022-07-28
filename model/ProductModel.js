@@ -3,7 +3,7 @@ const Connection = require('./connection').createConnection()
 module.exports = class ProductModel {
 
 
-     getProduct() {
+    static getProduct() {
         return new Promise((resolve, reject) => {
             let sql = `SELECT p.id, p.name, p.price
                        FROM products p
@@ -17,10 +17,11 @@ module.exports = class ProductModel {
         })
     }
 
-     deleteProduct(index) {
+    static deleteProduct(idDelete) {
+        const id = parseInt(idDelete)
         return new Promise((resolve, reject) => {
-            // let sql = `DeleteProduct(${index});`
-            let sql = `deleteProduct(${index})`
+            let sql = `call DeleteProduct(${id});`
+            // let sql = `deleteProduct(${idDelete})`
             Connection.query(sql, (err, result) => {
                 if (err) {
                     reject(err)
@@ -29,7 +30,21 @@ module.exports = class ProductModel {
             })
         })
     }
-
+static updateProduct(idUpdate) {
+    const id = parseInt(idUpdate)
+    return new Promise((resolve, reject) => {
+        let sql = `call DeleteProduct(${id});`
+        Connection.query(sql, (err, result) => {
+            if (err) {
+                reject(err)
+            }
+            resolve('delete ok')
+        })
+    })
 
 }
+
+}
+
+
 
