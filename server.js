@@ -468,7 +468,7 @@ const server = http.createServer((req, res) => {
                   ${product[i].total}
                   </td>
                   <td class="shoping__cart__item__close">
-                      <span class="icon_close"></span>
+                    <a href= "/">  <span class="icon_close"></span></a>
                   </td>
               </tr>`;
               }
