@@ -41,7 +41,7 @@ function getCate() {
 }
 function getProducts() {
   return new Promise((resolve, reject) => {
-    let queryProducts = `select p.name, p.price, p.id, c.name as catename
+    let queryProducts = `select p.name, p.price, p.id, p.image, c.name as catename
       from products p join categories c on p.category_id = c.id;`;
     connection.query(queryProducts, (err, data) => {
       if (err) {
@@ -54,7 +54,7 @@ function getProducts() {
 }
 function getOrders(userId) {
   return new Promise((resolve, reject) => {
-    let queryOrders = `select u.id, p.name, p.price, od.price as total, od.amount
+    let queryOrders = `select u.id, p.name, p.price, p.image, od.price as total, od.amount
     from users u join orders o on u.id = o.user_id join orderdetails od on o.id = od.orderid join products p on od.product_id = p.id
     where u.id = ${userId} ;`;
     connection.query(queryOrders, (err, data) => {
@@ -118,10 +118,12 @@ const server = http.createServer((req, res) => {
             }
             for (let i = 0; i < products.length; i++) {
               let filter = products[i].catename;
+              let src = 'assets/home/img/product/'+products[i].image
               filter = filter.toLowerCase();
+              'assets/home/img/product/'
               productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
             <div class="featured__item">
-                <div class="featured__item__pic set-bg" data-setbg="assets/home/img/featured/feature-1.jpg">
+                <div class="featured__item__pic set-bg" data-setbg=${products[i].image}>
                 </div>
                 <div class="featured__item__text">
                     <h6><a href="#">${products[i].name}</a></h6>
@@ -185,7 +187,7 @@ const server = http.createServer((req, res) => {
                 html += `<td >${product.id}</td>`;
                 html += `<td >${product.name}</td>`;
                 html += `<td>${product.price}</td>`;
-                html += `<td><img src="${product.image} " width="100px" height="100px"></td>`;
+                html += `<td><img src=${product.image} width="100px" height="100px"></td>`;
                 html += `<td>
                                 <button type="button" class="btn btn-danger"> <a href="/products/remove?id=${product.id}">Delete</a></button>
                
@@ -301,7 +303,7 @@ const server = http.createServer((req, res) => {
                 filter = filter.toLowerCase();
                 productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
                   <div class="featured__item">
-                      <div class="featured__item__pic set-bg" data-setbg="assets/home/img/featured/feature-1.jpg">
+                      <div class="featured__item__pic set-bg" data-setbg=${products[i].image}>
                           <ul class="featured__item__pic__hover">
                           <form action="/user?id=${currentUserId}" method = "post">
                           <input type="number"  placeholder="Amount" name="amount" id="amount" >
@@ -396,7 +398,7 @@ const server = http.createServer((req, res) => {
                 filter = filter.toLowerCase();
                 productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
                   <div class="featured__item">
-                      <div class="featured__item__pic set-bg" data-setbg="assets/home/img/featured/feature-1.jpg">
+                      <div class="featured__item__pic set-bg" data-setbg=${products[i].image}>
                           <ul class="featured__item__pic__hover">
                           <form action="/user?id=${currentUserId}" method = "post">
                           <input type="number"  placeholder="Amount" name="amount" id="amount" >
@@ -450,7 +452,7 @@ const server = http.createServer((req, res) => {
               for (let i = 0; i < product.length; i++) {
                 cartText += `<tr>
                   <td class="shoping__cart__item">
-                      <img src="assets/home/img/product/product-1.jpg" alt="">
+                      <img src=${product[i].image}  width="100px" height="100px" alt="">
                       <h5>${product[i].name}</h5>
                   </td>
                   <td class="shoping__cart__price">
