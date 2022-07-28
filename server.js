@@ -66,11 +66,9 @@ function getOrders(userId) {
     });
   });
 }
-function getTotal(currentUserId,currentOrderId) {
+function getTotal(currentUserId) {
   return new Promise((resolve,reject) => {
-    let queryOrders = `select u.id, o.id, p.name, p.price, od.price as total , od.amount
-    from users u join orders o on u.id = o.user_id join orderdetails od on o.id = od.orderid join products p on od.product_id = p.id
-    where u.id = ${currentUserId} and o.id = ${currentOrderId};`;
+    let queryOrders = `call getOrderTotal(${currentUserId});`;
     connection.query(queryOrders, (err, data) => {
       if (err) {
         reject(err);
@@ -498,6 +496,9 @@ const server = http.createServer((req, res) => {
           } else {
             let sum = 0;
               let product = await getOrders(currentUserId);
+              let sumObj = await getTotal(currentUserId)
+              let total = qs.parse(sumObj[0])
+              console.log(total[0].total)
               // let total = await getTotal(currentUserId,currentOrderId);
               // console.log(total)
               // for (let i = 0;i<total.length;i++) {
@@ -507,7 +508,6 @@ const server = http.createServer((req, res) => {
               // console.log(sum)
               if (product.length > 0) {
                 for (let i = 0; i < product.length; i++) {
-                  sum += product[i].total
                   cartText += `<tr>
                   <td class="shoping__cart__item">
                       <img src="assets/home/img/product/product-1.jpg" alt="">
@@ -530,7 +530,7 @@ const server = http.createServer((req, res) => {
               }
               
               data = data.replace("{continue-buy}", continueBuy);
-              data = data.replace("{Total-Price}", sum);
+              data = data.replace("{Total-Price}", total[0].total);
               data = data.replace("{continue-shopping}", continueShoppingText);
               data = data.replace("{cart}", cartText);
               res.writeHead(200, {'Content-Type': 'text/html'});
