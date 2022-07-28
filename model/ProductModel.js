@@ -30,19 +30,34 @@ module.exports = class ProductModel {
             })
         })
     }
-static updateProduct(idUpdate) {
-    const id = parseInt(idUpdate)
-    return new Promise((resolve, reject) => {
-        let sql = `call DeleteProduct(${id});`
-        Connection.query(sql, (err, result) => {
-            if (err) {
-                reject(err)
-            }
-            resolve('delete ok')
-        })
-    })
+    static updateProduct(idUpdate,newName,newPrice) {
+        const idInt=parseInt(idUpdate)
+        const priceInt = parseInt(newPrice)
 
-}
+        return new Promise((resolve, reject) => {
+            let sql = `call UpdateProduct(${idInt},"${newName}",${priceInt});`
+            Connection.query(sql, (err, result) => {
+                if (err) {
+                    reject(err)
+                }
+                resolve('Update Product successfully')
+            })
+        })
+    }
+
+
+static findProduct(id){
+        return new Promise((resolve, reject) => {
+            let sql = `SELECT p.id, p.name, p.price
+                       FROM products p where p.id = ${id}`
+            Connection.query(sql, (err, result) => {
+                if (err) {
+                    reject(err)
+                }
+                resolve(result)
+            })
+        })
+    }
 
 }
 
