@@ -66,9 +66,11 @@ function getOrders(userId) {
     });
   });
 }
-function getTotal(currentUserId) {
+function getTotal(currentUserId, currentOrderId) {
   return new Promise((resolve, reject) => {
-    let queryOrders = `call getOrderTotal(${currentUserId});`;
+    let queryOrders = `select u.id, o.id, p.name, p.price, od.price as total , od.amount
+    from users u join orders o on u.id = o.user_id join orderdetails od on o.id = od.orderid join products p on od.product_id = p.id
+    where u.id = ${currentUserId} and o.id = ${currentOrderId};`;
     connection.query(queryOrders, (err, data) => {
       if (err) {
         reject(err);
@@ -185,11 +187,13 @@ const server = http.createServer((req, res) => {
                 html += `<td >${product.id}</td>`;
                 html += `<td >${product.name}</td>`;
                 html += `<td>${product.price}</td>`;
-
+                html += `<td><img src="${product.image} " width="100px" height="100px"></td>`;
                 html += `<td>
-                                <button type="button" value="${product.id}" class="btn btn-danger"> <a href="/products/delete?id=${product.id}">Delete</a></button>
+                                <button type="button" class="btn btn-danger"> <a href="/products/xoaa?id=${product.id}">Delete</a></button>
                
-                                <button type="button" value="${product.id}" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
+                                <button type="button" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
+
+                                <button type="button" class="btn btn-warning"><a href="/admin/create">Create</a></button>
                             </td>`;
 
                 html += "</tr>";
@@ -201,25 +205,6 @@ const server = http.createServer((req, res) => {
             }
           });
         });
-        break;
-      }
-      case "/products/delete": {
-        // b1: tìm id xoá
-        //lấy toàn bộ url /product/delete?id = `${product.id};
-        let parseUrl = url.parse(req.url, true);
-        // lấy sau dấu ? và biến chuỗi query thành object {id:product.id}
-        let queryString = qs.parse(parseUrl.query);
-        //lấy ra id xoá
-        let idDelete = queryString.id;
-        //b2: lấy dc id xoá, tiến hành xoá trong csdl
-        ProductModel.deleteProduct(idDelete)
-          .then((result) => {
-            console.log(result);
-          })
-          .catch();
-        //b3: render lại giao diện.
-        res.writeHead(301, { location: "/admin" });
-        res.end();
         break;
       }
       case "/products/update": {
@@ -497,6 +482,76 @@ const server = http.createServer((req, res) => {
         });
         break;
       }
+      case "/admin/create": {
+        if (req.method === "GET") {
+          fs.readFile(
+            "./views/home/admin-create.html",
+            "utf-8",
+            (err, data) => {
+              if (err) {
+                console.log(err);
+              } else {
+                res.writeHead(200, { "Content-Type": "text/html" });
+                res.write(data);
+                return res.end();
+              }
+            }
+          );
+        } else {
+          let data = "";
+          req.on("data", (chunk) => {
+            data += chunk;
+          });
+          req.on("end", () => {
+            let product = qs.parse(data);
+            console.log(product);
+            let insertQuery = `insert into products(name,price,discount_id,image,category_id) VALUES ('${product.name}', ${product.price}, ${product.Discount_id}, '${product.Image}',${product.Category_id})`;
+            // let form = new formidable.IncomingForm();
+            // form.uploadDir = "./views/home/upload";
+            // form.parse(req, (err, fields, files) => {
+            //   let oldpath = files.image.path;
+            //   let newpath = "./views/home/upload/" + files.image.name;
+            //   fs.rename(oldpath, newpath, err => {
+            //     if (err) throw err;
+            //   });
+            // });
+            connection.query(insertQuery, (err, data) => {
+              if (err) {
+                console.log(err);
+              } else {
+                console.log("insert success");
+                res.writeHead(302, { Location: "/admin" });
+                res.end();
+              }
+            });
+          });
+        }
+        break;
+      }
+      case "/products/xoaa": {
+        // b1: tìm id xoá
+
+        //lấy toàn bộ url /product/delete?id = `${product.id};
+        const parseUrl = url.parse(req.url, true);
+        // lấy sau dấu ? và biến chuỗi query thành object {id:product.id}
+        let queryString = qs.parse(parseUrl.query);
+        //lấy ra id xoá
+        const idDelete = queryString.id;
+
+        //b2: lấy dc id xoá, tiến hành xoá trong csdl
+
+        ProductModel.deleteProduct(idDelete)
+          .then((result) => {
+            console.log(result);
+          })
+          .catch();
+        //b3: render lại giao diện.
+        res.writeHead(301, { location: "/admin" });
+        res.end();
+
+        break;
+      }
+
     }
   }
 });
