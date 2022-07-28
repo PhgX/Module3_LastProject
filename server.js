@@ -187,11 +187,13 @@ const server = http.createServer((req, res) => {
                 html += `<td >${product.id}</td>`;
                 html += `<td >${product.name}</td>`;
                 html += `<td>${product.price}</td>`;
-
+                html += `<td><img src="${product.image} " width="100px" height="100px"></td>`
                 html += `<td>
                                 <button type="button" value="${product.id}" class="btn btn-danger"> <a href="/products/delete?id=${product.id}">Delete</a></button>
                
                                 <button type="button" value="${product.id}" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
+
+                                <button type="button" class="btn btn-warning"><a href="/admin/create">Create</a></button>
                             </td>`;
 
                 html += "</tr>";
@@ -539,6 +541,48 @@ const server = http.createServer((req, res) => {
           }
       });
         break
+      }
+      case "/admin/create": {
+        if (req.method === "GET") {
+          fs.readFile("./views/home/admin-create.html", "utf-8",  (err, data) => {
+            if (err) {
+              console.log(err);
+            } else {
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.write(data);
+              return res.end();
+            }
+          });
+        } else {
+          let data = "";
+          req.on("data", chunk => {
+            data += chunk;
+          });
+          req.on ("end", () => {
+            let product = qs.parse(data);
+            console.log(product);
+            let insertQuery = `insert into products(name,price,discount_id,image,category_id) VALUES ('${product.name}', ${product.price}, ${product.Discount_id}, '${product.Image}',${product.Category_id})`;
+            // let form = new formidable.IncomingForm();
+            // form.uploadDir = "./views/home/upload";
+            // form.parse(req, (err, fields, files) => {
+            //   let oldpath = files.image.path;
+            //   let newpath = "./views/home/upload/" + files.image.name;
+            //   fs.rename(oldpath, newpath, err => {
+            //     if (err) throw err;
+            //   });
+            // });            
+            connection.query(insertQuery, (err, data) => {
+              if (err) {
+                console.log(err);
+              } else {
+                console.log('insert success');
+                res.writeHead(302, { Location: "/admin" });
+                res.end();
+              }
+            });
+          }); 
+        }
+        break;
       }
     }
   }
