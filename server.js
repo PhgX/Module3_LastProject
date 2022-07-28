@@ -66,11 +66,9 @@ function getOrders(userId) {
     });
   });
 }
-function getTotal(currentUserId, currentOrderId) {
+function getTotal(currentUserId) {
   return new Promise((resolve, reject) => {
-    let queryOrders = `select u.id, o.id, p.name, p.price, od.price as total , od.amount
-    from users u join orders o on u.id = o.user_id join orderdetails od on o.id = od.orderid join products p on od.product_id = p.id
-    where u.id = ${currentUserId} and o.id = ${currentOrderId};`;
+    let queryOrders = `call getOrderTotal(${currentUserId});`;
     connection.query(queryOrders, (err, data) => {
       if (err) {
         reject(err);
@@ -189,7 +187,7 @@ const server = http.createServer((req, res) => {
                 html += `<td>${product.price}</td>`;
                 html += `<td><img src="${product.image} " width="100px" height="100px"></td>`;
                 html += `<td>
-                                <button type="button" class="btn btn-danger"> <a href="/products/xoaa?id=${product.id}">Delete</a></button>
+                                <button type="button" class="btn btn-danger"> <a href="/products/remove?id=${product.id}">Delete</a></button>
                
                                 <button type="button" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
 
@@ -528,7 +526,7 @@ const server = http.createServer((req, res) => {
         }
         break;
       }
-      case "/products/xoaa": {
+      case "/products/remove": {
         // b1: tìm id xoá
 
         //lấy toàn bộ url /product/delete?id = `${product.id};
