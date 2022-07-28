@@ -38,7 +38,7 @@ function getCate() {
 }
 function getProducts() {
   return new Promise((resolve, reject) => {
-    let queryProducts = `select p.name, p.price, c.name as catename
+    let queryProducts = `select p.name, p.price,p.image, c.name as catename
       from products p join categories c on p.category_id = c.id;`;
     connection.query(queryProducts, (err, data) => {
       if (err) {
@@ -136,7 +136,7 @@ const server = http.createServer((req, res) => {
       case "/signup": {
         if (req.method === "GET") {
           fs.readFile(
-            "./views/login/signup.html",
+            "./assets/views/login/signup.html",
             "utf-8",
             (err, data) => {
               if (err) {
@@ -154,41 +154,74 @@ const server = http.createServer((req, res) => {
         break;
       }
       case "/admin": {
-         ProductModel.getProduct()
-            .then(listProduct=>{
-              fs.readFile("./views/home/admin.html", "utf-8",  (err, data) => {
+          fs.readFile("./views/home/admin.html", "utf-8", async(err, data) => {
+            if (err) {
+              console.log(err);
+            } else {
+              let products = await getProducts();
+              let tbody = "";
+              for (let i = 0; i < products.length; i++) {
+                tbody += `<tr>
+                <td>${i+1}</td>
+                <td>${products[i].name}</td>
+                <td>${products[i].price}</td>
+                <td>${products[i].catename}</td>
+                <td><img src=" ${products[i].image} " width="100px" height="100px"></td>
+                <td><a href="/admin/edit?id=${products[i].id}" class="btn btn-primary">Edit</a></td>
+                <td><a href="/admin/delete?id=${products[i].id}" class="btn btn-danger">Delete</a></td>
+                <td><a href="/admin/create" class="btn btn-warning">Create</a></td>
+                </tr>`;     
+              }
+              data = data.replace("{tbody}", tbody);
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.write(data);
+              return res.end();
+            }
+          });
+          break;
+        }
+        case "/admin/create": {
+          if (req.method === "GET") {
+            fs.readFile("./views/home/admin-create.html", "utf-8",  (err, data) => {
+              if (err) {
+                console.log(err);
+              } else {
+                res.writeHead(200, { "Content-Type": "text/html" });
+                res.write(data);
+                return res.end();
+              }
+            });
+          } else {
+            let data = "";
+            req.on("data", chunk => {
+              data += chunk;
+            });
+            req.on ("end", () => {
+              let product = qs.parse(data);
+              let insertQuery = `insert into products(name,price,discount_id,image,category_id) VALUES ('${product.name}', ${product.price}, ${product.Discount_id}, '${product.Image}',${product.Category_id})`;
+              // let form = new formidable.IncomingForm();
+              // form.uploadDir = "./views/home/upload";
+              // form.parse(req, (err, fields, files) => {
+              //   let oldpath = files.image.path;
+              //   let newpath = "./views/home/upload/" + files.image.name;
+              //   fs.rename(oldpath, newpath, err => {
+              //     if (err) throw err;
+              //   });
+              // });            
+              connection.query(insertQuery, (err, data) => {
                 if (err) {
                   console.log(err);
                 } else {
-
-                  let html = '';
-                  listProduct.forEach((product, index) => {
-                    html += '<tr>'
-                    html += `<td >${product.id}</td>`
-                    html += `<td >${product.name}</td>`
-                    html += `<td>${product.price}</td>`
-
-                    html += `<td>
-                                <button type="button" value="${product.id}" class="btn btn-danger"> <a href="/products/delete?id=${product.id}">Delete</a></button>
-               
-                                <button type="button" value="${product.id}" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
-                            </td>`
-
-                    html += '</tr>'
-                  })
-                  data = data.replace('{list-products}', html)
-                  res.writeHead(200, {"Content-Type": "text/html"})
-                  res.write(data)
+                  console.log('insert success');
+                  res.writeHead(302, { Location: "/admin" });
                   res.end();
                 }
+              });
+            }); 
+          }
+          break;
+        }  
 
-              })
-
-
-
-            })
-        break;
-      }
       case "/user": {
         fs.readFile("./views/home/user.html", "utf-8", async (err, data) => {
           if (err) {

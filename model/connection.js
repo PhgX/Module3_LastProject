@@ -6,7 +6,7 @@ class Connection {
       let configToMySQL = {
         host: "localhost",
         user: "root",
-        password: "nguyenthidung95",
+        password: "Kudo1997@",
         database: "project3",
         charset: "utf8mb4",
       };
