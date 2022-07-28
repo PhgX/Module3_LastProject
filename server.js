@@ -66,6 +66,20 @@ function getOrders(userId) {
     });
   });
 }
+function getTotal(currentUserId,currentOrderId) {
+  return new Promise((resolve,reject) => {
+    let queryOrders = `select u.id, o.id, p.name, p.price, od.price as total , od.amount
+    from users u join orders o on u.id = o.user_id join orderdetails od on o.id = od.orderid join products p on od.product_id = p.id
+    where u.id = ${currentUserId} and o.id = ${currentOrderId};`;
+    connection.query(queryOrders, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  })
+}
 
 const server = http.createServer((req, res) => {
   const filesDefences = req.url.match(
@@ -339,14 +353,24 @@ const server = http.createServer((req, res) => {
         let idUpdate = query.id;
         currentUserId = idUpdate;
         let cartText = ``;
+        let continueBuy = `<li><a href="/user?id=${currentUserId}">Buy</a></li>`
         let continueShoppingText = `<a href="/user?id=${currentUserId}" class="primary-btn cart-btn">CONTINUE SHOPPING</a>`;
         fs.readFile('views/home/cart.html', 'utf-8', async (err, data) => {
           if (err) {
               console.log('File NotFound!');
           } else {
+            let sum = 0;
               let product = await getOrders(currentUserId);
+              // let total = await getTotal(currentUserId,currentOrderId);
+              // console.log(total)
+              // for (let i = 0;i<total.length;i++) {
+              //   sum += total[i].total
+              
+              // }
+              // console.log(sum)
               if (product.length > 0) {
                 for (let i = 0; i < product.length; i++) {
+                  sum += product[i].total
                   cartText += `<tr>
                   <td class="shoping__cart__item">
                       <img src="assets/home/img/product/product-1.jpg" alt="">
@@ -367,6 +391,9 @@ const server = http.createServer((req, res) => {
               </tr>`
                 }
               }
+              
+              data = data.replace("{continue-buy}", continueBuy);
+              data = data.replace("{Total-Price}", sum);
               data = data.replace("{continue-shopping}", continueShoppingText);
               data = data.replace("{cart}", cartText);
               res.writeHead(200, {'Content-Type': 'text/html'});
