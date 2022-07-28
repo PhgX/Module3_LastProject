@@ -189,9 +189,9 @@ const server = http.createServer((req, res) => {
                 html += `<td>${product.price}</td>`;
                 html += `<td><img src="${product.image} " width="100px" height="100px"></td>`
                 html += `<td>
-                                <button type="button" value="${product.id}" class="btn btn-danger"> <a href="/products/delete?id=${product.id}">Delete</a></button>
+                                <button type="button" class="btn btn-danger"> <a href="/products/delete?id=${product.id}">Delete</a></button>
                
-                                <button type="button" value="${product.id}" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
+                                <button type="button" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
 
                                 <button type="button" class="btn btn-warning"><a href="/admin/create">Create</a></button>
                             </td>`;
