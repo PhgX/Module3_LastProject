@@ -66,8 +66,8 @@ function getOrders(userId) {
     });
   });
 }
-function getTotal(currentUserId,currentOrderId) {
-  return new Promise((resolve,reject) => {
+function getTotal(currentUserId, currentOrderId) {
+  return new Promise((resolve, reject) => {
     let queryOrders = `select u.id, o.id, p.name, p.price, od.price as total , od.amount
     from users u join orders o on u.id = o.user_id join orderdetails od on o.id = od.orderid join products p on od.product_id = p.id
     where u.id = ${currentUserId} and o.id = ${currentOrderId};`;
@@ -78,7 +78,7 @@ function getTotal(currentUserId,currentOrderId) {
         resolve(data);
       }
     });
-  })
+  });
 }
 
 const server = http.createServer((req, res) => {
@@ -187,9 +187,9 @@ const server = http.createServer((req, res) => {
                 html += `<td >${product.id}</td>`;
                 html += `<td >${product.name}</td>`;
                 html += `<td>${product.price}</td>`;
-                html += `<td><img src="${product.image} " width="100px" height="100px"></td>`
+                html += `<td><img src="${product.image} " width="100px" height="100px"></td>`;
                 html += `<td>
-                                <button type="button" class="btn btn-danger"> <a href="/products/delete?id=${product.id}">Delete</a></button>
+                                <button type="button" class="btn btn-danger"> <a href="/products/xoaa?id=${product.id}">Delete</a></button>
                
                                 <button type="button" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
 
@@ -207,97 +207,30 @@ const server = http.createServer((req, res) => {
         });
         break;
       }
-      case "/products/delete": {
-        // b1: tìm id xoá
-
-//lấy toàn bộ url /product/delete?id = `${product.id};
-        const parseUrl = url.parse(req.url, true);
-        // lấy sau dấu ? và biến chuỗi query thành object {id:product.id}
-        let  queryString = qs.parse(parseUrl.query);
-        //lấy ra id xoá
-        const idDelete = queryString.id
-
-
-        //b2: lấy dc id xoá, tiến hành xoá trong csdl
-
-        ProductModel.deleteProduct( idDelete)
-            .then(result=>{
-          console.log(result);
-            })
-            .catch()
-        //b3: render lại giao diện.
-        res.writeHead(301,{location: '/admin'});
-        res.end();
-
-
-
-        break;
-      }
-
-      // case "/products/update": {
-      //
-      //   if(req.method === "GET"){
-      //     fs.readFile('./views/home/update.html', "utf-8",(err,data)=>{
-      //       if(err){
-      //         console.log(err);
-      //       }
-      //       res.writeHead(200, { "Content-Type": "text/html" });
-      //
-      //       res.write(data);
-      //       res.end();
-      //     })
-      //   } else {
-      //      //tim id update
-      //     const parseUrl = url.parse(req.url, true)
-      //     let  idUpdate=qs.parse(parseUrl.query).id;
-      //     // lay id update sua trong co so su lieu
-      //     ProductModel.updateProduct(idUpdate)
-      //         .then(res => {
-      //           res.writeHead(200, { "Content-Type": "text/html" });
-      //           data=data.replace('{idUpdate}',`${idUpdate}`)
-      //           data=data.replace('{valueName}',`${result[0].name}`)
-      //           data=data.replace('{valuePrice}',`${result[0].price}`)
-      //
-      //           res.write(data);
-      //           res.end();
-      //           res.writeHead(301,{location: '/admin'});
-      //           res.end();
-      //         }
-      //     ).catch()
-      //   }
-      //
-      //   break;
-      // }
       case "/products/update": {
-
-
-
-
-
-        if(req.method === "GET"){
-
-          let parseUrl = url.parse(req.url, true)
-          let  idUpdate=qs.parse(parseUrl.query).id;
+        if (req.method === "GET") {
+          let parseUrl = url.parse(req.url, true);
+          let idUpdate = qs.parse(parseUrl.query).id;
 
           ProductModel.findProduct(idUpdate)
-              .then(result => {
-                console.log(result);
-                fs.readFile('./views/home/update.html', "utf-8",(err,data)=>{
-                  if(err){
-                    console.log(err);
-                  }
-                  res.writeHead(200, { "Content-Type": "text/html" });
-                  data=data.replace('{idUpdate}',`${idUpdate}`)
-                  data=data.replace('{valueName}',`${result[0]["name"]}`)
-                  data=data.replace('{valuePrice}',`${result[0]["price"]}`)
+            .then((result) => {
+              console.log(result);
+              fs.readFile("./views/home/update.html", "utf-8", (err, data) => {
+                if (err) {
+                  console.log(err);
+                }
+                res.writeHead(200, { "Content-Type": "text/html" });
+                data = data.replace("{idUpdate}", `${idUpdate}`);
+                data = data.replace("{valueName}", `${result[0]["name"]}`);
+                data = data.replace("{valuePrice}", `${result[0]["price"]}`);
 
-                  res.write(data);
-                  res.end();
-                })
-              })
-              .catch(err => {
-                console.log(err)})
-
+                res.write(data);
+                res.end();
+              });
+            })
+            .catch((err) => {
+              console.log(err);
+            });
 
           // fs.readFile('./views/home/update.html', "utf-8",(err,data)=>{
           //   if(err){
@@ -308,38 +241,31 @@ const server = http.createServer((req, res) => {
           //   res.write(data);
           //   res.end();
           // })
-        }
-        else{
+        } else {
           //b1: tim id update ,lay gia tri new name , new price
 
-          let data=''
-          req.on('data', chunk => {
-            data+=chunk
+          let data = "";
+          req.on("data", (chunk) => {
+            data += chunk;
             // console.log(data)
-          })
-          req.on('end', async  () =>{
-            let product = await qs.parse(data)
+          });
+          req.on("end", async () => {
+            let product = await qs.parse(data);
             // console.log({product})
-            let idUpdate=product.id;
+            let idUpdate = product.id;
             let newName = product.nameEdit;
             let newPrice = product.priceEdit;
 
-
             //b2:lay idUpdate newNameProduct newNamePrice sua trong co so su lieu
-            await ProductModel.updateProduct(idUpdate,newName,newPrice)
-                .then(result=>console.log(result))
-                .catch(err=>console.log(err))
-
+            await ProductModel.updateProduct(idUpdate, newName, newPrice)
+              .then((result) => console.log(result))
+              .catch((err) => console.log(err));
 
             //b3:render giao dien
-            res.writeHead(301,{location: '/admin'});
+            res.writeHead(301, { location: "/admin" });
             res.end();
-          })
-
-
-
+          });
         }
-
 
         break;
       }
@@ -412,7 +338,13 @@ const server = http.createServer((req, res) => {
             let productid = product.productid;
             let productPrice = 0;
             let amount = product.amount;
-            function getProductPrice(productid,amount,productPrice,currentOrderId, callback) {
+            function getProductPrice(
+              productid,
+              amount,
+              productPrice,
+              currentOrderId,
+              callback
+            ) {
               let queryGetProductPrice = `select price from products where id = ${productid};`;
               connection.query(queryGetProductPrice, (err, data) => {
                 let parseData = qs.parse(data[0]);
@@ -431,7 +363,13 @@ const server = http.createServer((req, res) => {
               let queryInsertOrder = `insert into orderdetails(product_id,amount,price,orderid) values (${productid},${amount},${price},${currentOrderId});`;
               connection.query(queryInsertOrder, (err, data) => {});
             }
-            getProductPrice(productid,amount,productPrice,currentOrderId,insertOrder)
+            getProductPrice(
+              productid,
+              amount,
+              productPrice,
+              currentOrderId,
+              insertOrder
+            );
             res.writeHead(301, {
               location: `/user?id=${currentUserId}`,
             });
@@ -487,30 +425,30 @@ const server = http.createServer((req, res) => {
 
         break;
       }
-      case '/cart' : {
+      case "/cart": {
         let query = qs.parse(urlParse.query);
         let idUpdate = query.id;
         currentUserId = idUpdate;
         let cartText = ``;
-        let continueBuy = `<li><a href="/user?id=${currentUserId}">Buy</a></li>`
+        let continueBuy = `<li><a href="/user?id=${currentUserId}">Buy</a></li>`;
         let continueShoppingText = `<a href="/user?id=${currentUserId}" class="primary-btn cart-btn">CONTINUE SHOPPING</a>`;
-        fs.readFile('views/home/cart.html', 'utf-8', async (err, data) => {
+        fs.readFile("views/home/cart.html", "utf-8", async (err, data) => {
           if (err) {
-              console.log('File NotFound!');
+            console.log("File NotFound!");
           } else {
             let sum = 0;
-              let product = await getOrders(currentUserId);
-              // let total = await getTotal(currentUserId,currentOrderId);
-              // console.log(total)
-              // for (let i = 0;i<total.length;i++) {
-              //   sum += total[i].total
-              
-              // }
-              // console.log(sum)
-              if (product.length > 0) {
-                for (let i = 0; i < product.length; i++) {
-                  sum += product[i].total
-                  cartText += `<tr>
+            let product = await getOrders(currentUserId);
+            // let total = await getTotal(currentUserId,currentOrderId);
+            // console.log(total)
+            // for (let i = 0;i<total.length;i++) {
+            //   sum += total[i].total
+
+            // }
+            // console.log(sum)
+            if (product.length > 0) {
+              for (let i = 0; i < product.length; i++) {
+                sum += product[i].total;
+                cartText += `<tr>
                   <td class="shoping__cart__item">
                       <img src="assets/home/img/product/product-1.jpg" alt="">
                       <h5>${product[i].name}</h5>
@@ -527,38 +465,42 @@ const server = http.createServer((req, res) => {
                   <td class="shoping__cart__item__close">
                       <span class="icon_close"></span>
                   </td>
-              </tr>`
-                }
+              </tr>`;
               }
-              
-              data = data.replace("{continue-buy}", continueBuy);
-              data = data.replace("{Total-Price}", sum);
-              data = data.replace("{continue-shopping}", continueShoppingText);
-              data = data.replace("{cart}", cartText);
-              res.writeHead(200, {'Content-Type': 'text/html'});
-              res.write(data);
-              return res.end();
+            }
+
+            data = data.replace("{continue-buy}", continueBuy);
+            data = data.replace("{Total-Price}", sum);
+            data = data.replace("{continue-shopping}", continueShoppingText);
+            data = data.replace("{cart}", cartText);
+            res.writeHead(200, { "Content-Type": "text/html" });
+            res.write(data);
+            return res.end();
           }
-      });
-        break
+        });
+        break;
       }
       case "/admin/create": {
         if (req.method === "GET") {
-          fs.readFile("./views/home/admin-create.html", "utf-8",  (err, data) => {
-            if (err) {
-              console.log(err);
-            } else {
-              res.writeHead(200, { "Content-Type": "text/html" });
-              res.write(data);
-              return res.end();
+          fs.readFile(
+            "./views/home/admin-create.html",
+            "utf-8",
+            (err, data) => {
+              if (err) {
+                console.log(err);
+              } else {
+                res.writeHead(200, { "Content-Type": "text/html" });
+                res.write(data);
+                return res.end();
+              }
             }
-          });
+          );
         } else {
           let data = "";
-          req.on("data", chunk => {
+          req.on("data", (chunk) => {
             data += chunk;
           });
-          req.on ("end", () => {
+          req.on("end", () => {
             let product = qs.parse(data);
             console.log(product);
             let insertQuery = `insert into products(name,price,discount_id,image,category_id) VALUES ('${product.name}', ${product.price}, ${product.Discount_id}, '${product.Image}',${product.Category_id})`;
@@ -570,20 +512,44 @@ const server = http.createServer((req, res) => {
             //   fs.rename(oldpath, newpath, err => {
             //     if (err) throw err;
             //   });
-            // });            
+            // });
             connection.query(insertQuery, (err, data) => {
               if (err) {
                 console.log(err);
               } else {
-                console.log('insert success');
+                console.log("insert success");
                 res.writeHead(302, { Location: "/admin" });
                 res.end();
               }
             });
-          }); 
+          });
         }
         break;
       }
+      case "/products/xoaa": {
+        // b1: tìm id xoá
+
+        //lấy toàn bộ url /product/delete?id = `${product.id};
+        const parseUrl = url.parse(req.url, true);
+        // lấy sau dấu ? và biến chuỗi query thành object {id:product.id}
+        let queryString = qs.parse(parseUrl.query);
+        //lấy ra id xoá
+        const idDelete = queryString.id;
+
+        //b2: lấy dc id xoá, tiến hành xoá trong csdl
+
+        ProductModel.deleteProduct(idDelete)
+          .then((result) => {
+            console.log(result);
+          })
+          .catch();
+        //b3: render lại giao diện.
+        res.writeHead(301, { location: "/admin" });
+        res.end();
+
+        break;
+      }
+
     }
   }
 });
