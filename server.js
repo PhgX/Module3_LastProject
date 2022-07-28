@@ -74,6 +74,7 @@ function getProductPrice(productid,amount,productPrice,currentOrderId, callback)
     callback(amount, productPrice, productid, currentOrderId);
   });
 }
+
 function insertOrder(
   amount,
   productPrice,
@@ -84,6 +85,21 @@ function insertOrder(
   console.log(price);
   let queryInsertOrder = `insert into orderdetails(product_id,amount,price,orderid) values (${productid},${amount},${price},${currentOrderId});`;
   connection.query(queryInsertOrder, (err, data) => {});
+}
+
+function getTotal(currentUserId,currentOrderId) {
+  return new Promise((resolve,reject) => {
+    let queryOrders = `select u.id, o.id, p.name, p.price, od.price as total , od.amount
+    from users u join orders o on u.id = o.user_id join orderdetails od on o.id = od.orderid join products p on od.product_id = p.id
+    where u.id = ${currentUserId} and o.id = ${currentOrderId};`;
+    connection.query(queryOrders, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  })
 }
 
 const server = http.createServer((req, res) => {
@@ -210,6 +226,139 @@ const server = http.createServer((req, res) => {
         });
         break;
       }
+      case "/products/delete": {
+        console.log('hello xoa de')
+        // b1: tìm id xoá
+
+//lấy toàn bộ url /product/delete?id = `${product.id};
+        const parseUrl = url.parse(req.url, true);
+        // lấy sau dấu ? và biến chuỗi query thành object {id:product.id}
+        let  queryString = qs.parse(parseUrl.query);
+        //lấy ra id xoá
+        const idDelete = queryString.id
+
+
+        //b2: lấy dc id xoá, tiến hành xoá trong csdl
+
+        ProductModel.deleteProduct( idDelete)
+            .then(result=>{
+          console.log(result);
+            })
+            .catch()
+        //b3: render lại giao diện.
+        res.writeHead(301,{location: '/admin'});
+        res.end();
+
+
+
+        break;
+      }
+
+      // case "/products/update": {
+      //
+      //   if(req.method === "GET"){
+      //     fs.readFile('./views/home/update.html', "utf-8",(err,data)=>{
+      //       if(err){
+      //         console.log(err);
+      //       }
+      //       res.writeHead(200, { "Content-Type": "text/html" });
+      //
+      //       res.write(data);
+      //       res.end();
+      //     })
+      //   } else {
+      //      //tim id update
+      //     const parseUrl = url.parse(req.url, true)
+      //     let  idUpdate=qs.parse(parseUrl.query).id;
+      //     // lay id update sua trong co so su lieu
+      //     ProductModel.updateProduct(idUpdate)
+      //         .then(res => {
+      //           res.writeHead(200, { "Content-Type": "text/html" });
+      //           data=data.replace('{idUpdate}',`${idUpdate}`)
+      //           data=data.replace('{valueName}',`${result[0].name}`)
+      //           data=data.replace('{valuePrice}',`${result[0].price}`)
+      //
+      //           res.write(data);
+      //           res.end();
+      //           res.writeHead(301,{location: '/admin'});
+      //           res.end();
+      //         }
+      //     ).catch()
+      //   }
+      //
+      //   break;
+      // }
+      case "/products/update": {
+        console.log('hello update de')
+        if(req.method === "GET"){
+          let parseUrl = url.parse(req.url, true)
+          let  idUpdate=qs.parse(parseUrl.query).id;
+
+          ProductModel.findProduct(idUpdate)
+              .then(result => {
+                console.log(result);
+                fs.readFile('./views/home/update.html', "utf-8",(err,data)=>{
+                  if(err){
+                    console.log(err);
+                  }
+                  res.writeHead(200, { "Content-Type": "text/html" });
+                  data=data.replace('{idUpdate}',`${idUpdate}`)
+                  data=data.replace('{valueName}',`${result[0]["name"]}`)
+                  data=data.replace('{valuePrice}',`${result[0]["price"]}`)
+
+                  res.write(data);
+                  res.end();
+                })
+              })
+              .catch(err => {
+                console.log(err)})
+
+
+          // fs.readFile('./views/home/update.html', "utf-8",(err,data)=>{
+          //   if(err){
+          //     console.log(err);
+          //   }
+          //   res.writeHead(200, { "Content-Type": "text/html" });
+          //   data=data.replace('{idUpdate}',`${idUpdate}`)
+          //   res.write(data);
+          //   res.end();
+          // })
+        }
+        else{
+          //b1: tim id update ,lay gia tri new name , new price
+
+          let data=''
+          req.on('data', chunk => {
+            data+=chunk
+            // console.log(data)
+          })
+          req.on('end', async  () =>{
+            let product = await qs.parse(data)
+            // console.log({product})
+            let idUpdate=product.id;
+            let newName = product.nameEdit;
+            let newPrice = product.priceEdit;
+
+
+            //b2:lay idUpdate newNameProduct newNamePrice sua trong co so su lieu
+            await ProductModel.updateProduct(idUpdate,newName,newPrice)
+                .then(result=>console.log(result))
+                .catch(err=>console.log(err))
+
+
+            //b3:render giao dien
+            res.writeHead(301,{location: '/admin'});
+            res.end();
+          })
+
+
+
+        }
+
+
+        break;
+      }
+
       case "/user": {
         let query = qs.parse(urlParse.query);
         let idUpdate = query.id;
@@ -338,14 +487,24 @@ const server = http.createServer((req, res) => {
         let idUpdate = query.id;
         currentUserId = idUpdate;
         let cartText = ``;
+        let continueBuy = `<li><a href="/user?id=${currentUserId}">Buy</a></li>`
         let continueShoppingText = `<a href="/user?id=${currentUserId}" class="primary-btn cart-btn">CONTINUE SHOPPING</a>`;
         fs.readFile('views/home/cart.html', 'utf-8', async (err, data) => {
           if (err) {
               console.log('File NotFound!');
           } else {
+            let sum = 0;
               let product = await getOrders(currentUserId);
+              let total = await getTotal(currentUserId,currentOrderId);
+              console.log(total)
+              for (let i = 0;i<total.length;i++) {
+                sum += total[i].total
+              
+              }
+              // console.log(sum)
               if (product.length > 0) {
                 for (let i = 0; i < product.length; i++) {
+                  sum += product[i].total
                   cartText += `<tr>
                   <td class="shoping__cart__item">
                       <img src="assets/home/img/product/product-1.jpg" alt="">
@@ -366,6 +525,9 @@ const server = http.createServer((req, res) => {
               </tr>`
                 }
               }
+              
+              data = data.replace("{continue-buy}", continueBuy);
+              data = data.replace("{Total-Price}", sum);
               data = data.replace("{continue-shopping}", continueShoppingText);
               data = data.replace("{cart}", cartText);
               res.writeHead(200, {'Content-Type': 'text/html'});
@@ -379,6 +541,6 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.listen(8080, () => {
-  console.log("Server is running on http://localhost:8080");
+server.listen(8989, () => {
+  console.log("Server is running on http://localhost:8989");
 });

@@ -30,7 +30,7 @@ class LoginController {
               } else {
                 res.writeHead(200, { "Content-Type": "text/html" });
 
-                let text = `<p style="text-align: center; color: white; font-size: 30px">Tài khoản không tồn tại hoặc nhập sai mật khẩu</p>`;
+                let text = `<p style="text-align: center; color: white; font-size: 30px">The account does not exist or entered the wrong password</p>`;
                 data = data.replace("{here}", text);
                 res.write(data);
                 return res.end();

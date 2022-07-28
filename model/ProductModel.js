@@ -5,8 +5,8 @@ module.exports = class ProductModel {
 
     static getProduct() {
         return new Promise((resolve, reject) => {
-            let sql = `select p.id, p.name, p.price
-                       from products p
+            let sql = `SELECT p.id, p.name, p.price
+                       FROM products p
             `
             Connection.query(sql, (err, result) => {
                 if (err) {
@@ -17,12 +17,11 @@ module.exports = class ProductModel {
         })
     }
 
-    static deleteProduct(index) {
+    static deleteProduct(idDelete) {
+        const id = parseInt(idDelete)
         return new Promise((resolve, reject) => {
-            // let sql = `delete from orderdetails where product_id = id=${index}`
-            let sql = `delete
-                       from products
-                       where id = ${index}`
+            let sql = `call DeleteProduct(${id});`
+            // let sql = `deleteProduct(${idDelete})`
             Connection.query(sql, (err, result) => {
                 if (err) {
                     reject(err)
@@ -31,7 +30,36 @@ module.exports = class ProductModel {
             })
         })
     }
+    static updateProduct(idUpdate,newName,newPrice) {
+        const idInt=parseInt(idUpdate)
+        const priceInt = parseInt(newPrice)
 
+        return new Promise((resolve, reject) => {
+            let sql = `call UpdateProduct(${idInt},"${newName}",${priceInt});`
+            Connection.query(sql, (err, result) => {
+                if (err) {
+                    reject(err)
+                }
+                resolve('Update Product successfully')
+            })
+        })
+    }
+
+
+static findProduct(id){
+        return new Promise((resolve, reject) => {
+            let sql = `SELECT p.id, p.name, p.price
+                       FROM products p where p.id = ${id}`
+            Connection.query(sql, (err, result) => {
+                if (err) {
+                    reject(err)
+                }
+                resolve(result)
+            })
+        })
+    }
 
 }
+
+
 

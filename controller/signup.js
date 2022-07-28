@@ -71,7 +71,7 @@ function SignUpAccount(req, res) {
                     } else {
                       res.writeHead(200, { "Content-Type": "text/html" });
                       res.write(data);
-                      res.write("Tài khoản đã tồn tại");
+                      res.write("Account already exists");
                       return res.end();
                     }
                   }
@@ -96,7 +96,7 @@ function SignUpAccount(req, res) {
                     } else {
                       res.writeHead(200, { "Content-Type": "text/html" });
                       res.write(data);
-                      res.write("Email đã được đăng ký");
+                      res.write("The Email was registered");
                       return res.end();
                     }
                   }
@@ -121,7 +121,7 @@ function SignUpAccount(req, res) {
                     } else {
                       res.writeHead(200, { "Content-Type": "text/html" });
                       res.write(data);
-                      res.write("Số điện thoại đã được đăng ký");
+                      res.write("Registered phone number");
                       return res.end();
                     }
                   }
@@ -175,7 +175,7 @@ function SignUpAccount(req, res) {
         if (err) {
           console.log(err);
         } else {
-          let success1 = `<p style="text-align: center; color: white; font-size: 30px">Lỗi! Mật khẩu xác nhận không đúng</p>`;
+          let success1 = `<p style="text-align: center; color: white; font-size: 30px">Error! Confirmation password is incorrect</p>`;
           data = data.replace("{here}", success1);
           res.writeHead(200, { "Content-Type": "text/html" });
           res.write(data);
@@ -190,8 +190,8 @@ function SignUpAccount(req, res) {
           console.log(err);
         } else {
           let success2 =
-            `<p style="text-align: center; color: white; font-size: 30px">Lỗi! Mật khẩu nhập không đúng yêu cầu\n` +
-            `Mật khẩu có độ dài từ 6 đến 20 ký tự, có ít nhất 1 chữ cái thường, 1 viết hoa và 1 ký tự đặc biệt</p>`;
+            `<p style="text-align: center; color: white; font-size: 30px">Error! The password entered is not correct\n` +
+            `Passwords should be between 6 and 20 characters long, with at least 1 lowercase letter, 1 uppercase letter, and 1 special character.</p>`;
           data = data.replace("{here}", success2);
           res.writeHead(200, { "Content-Type": "text/html" });
           res.write(data);
@@ -203,7 +203,7 @@ function SignUpAccount(req, res) {
         if (err) {
           console.log(err);
         } else {
-          let success3 = `<p style="text-align: center; color: white; font-size: 30px">Lỗi!! Email điền không chính xác</p>`;
+          let success3 = `<p style="text-align: center; color: white; font-size: 30px">Error!! Email entered incorrectly</p>`;
           data = data.replace("{here}", success3);
           res.writeHead(200, { "Content-Type": "text/html" });
           res.write(data);
@@ -215,7 +215,7 @@ function SignUpAccount(req, res) {
         if (err) {
           console.log(err);
         } else {
-          let success4 = `<p style="text-align: center; color: white; font-size: 30px">Lỗi!! Số điện thoại điền không chính xác</p>`;
+          let success4 = `<p style="text-align: center; color: white; font-size: 30px">Error!! Incorrect phone number</p>`;
           data = data.replace("{here}", success4);
           res.writeHead(200, { "Content-Type": "text/html" });
           res.write(data);
