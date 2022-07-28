@@ -5,7 +5,8 @@ const qs = require("qs");
 const checkRegister = require("./controller/signup");
 const Connection = require("./model/connection");
 const LoginControl = require('./controller/loginAccount');
-const ProductModel = require('./model/ProductModel')
+const ProductModel = require('./model/ProductModel');
+const localStorage = require('local-storage');
 
 let connection = Connection.createConnection({ multipleStatements: true });
 const mimeTypes = {
@@ -194,6 +195,8 @@ const server = http.createServer((req, res) => {
           if (err) {
             console.log(err);
           } else {
+            
+
             let categories = await getCate();
             let products = await getProducts();
             let cateText = "";
