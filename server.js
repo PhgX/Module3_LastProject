@@ -120,10 +120,9 @@ const server = http.createServer((req, res) => {
               let filter = products[i].catename;
               let src = 'assets/home/img/product/'+products[i].image
               filter = filter.toLowerCase();
-              'assets/home/img/product/'
               productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
             <div class="featured__item">
-                <div class="featured__item__pic set-bg" data-setbg=${products[i].image}>
+                <div class="featured__item__pic set-bg" data-setbg=${src}>
                 </div>
                 <div class="featured__item__text">
                     <h6><a href="#">${products[i].name}</a></h6>
@@ -183,11 +182,12 @@ const server = http.createServer((req, res) => {
             } else {
               let html = "";
               listProduct.forEach((product, index) => {
+                let src = 'assets/home/img/product/'+product.image
                 html += "<tr>";
                 html += `<td >${product.id}</td>`;
                 html += `<td >${product.name}</td>`;
                 html += `<td>${product.price}</td>`;
-                html += `<td><img src=${product.image} width="100px" height="100px"></td>`;
+                html += `<td><img src=${src} width="100px" height="100px"></td>`;
                 html += `<td>
                                 <button type="button" class="btn btn-danger"> <a href="/products/remove?id=${product.id}">Delete</a></button>
                
@@ -299,11 +299,12 @@ const server = http.createServer((req, res) => {
                 cateText += `<li data-filter=".${filter}">${categories[i].name}</li>`;
               }
               for (let i = 0; i < products.length; i++) {
+                let src = 'assets/home/img/product/'+products[i].image
                 let filter = products[i].catename;
                 filter = filter.toLowerCase();
                 productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
                   <div class="featured__item">
-                      <div class="featured__item__pic set-bg" data-setbg=${products[i].image}>
+                      <div class="featured__item__pic set-bg" data-setbg=${src}>
                           <ul class="featured__item__pic__hover">
                           <form action="/user?id=${currentUserId}" method = "post">
                           <input type="number"  placeholder="Amount" name="amount" id="amount" >
@@ -394,11 +395,12 @@ const server = http.createServer((req, res) => {
                 cateText += `<li data-filter=".${filter}">${categories[i].name}</li>`;
               }
               for (let i = 0; i < products.length; i++) {
+                let src = 'assets/home/img/product/'+products[i].image
                 let filter = products[i].catename;
                 filter = filter.toLowerCase();
                 productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
                   <div class="featured__item">
-                      <div class="featured__item__pic set-bg" data-setbg=${products[i].image}>
+                      <div class="featured__item__pic set-bg" data-setbg=${src}>
                           <ul class="featured__item__pic__hover">
                           <form action="/user?id=${currentUserId}" method = "post">
                           <input type="number"  placeholder="Amount" name="amount" id="amount" >
@@ -450,9 +452,10 @@ const server = http.createServer((req, res) => {
             // console.log(sum)
             if (product.length > 0) {
               for (let i = 0; i < product.length; i++) {
+                let src = 'assets/home/img/product/'+product[i].image
                 cartText += `<tr>
                   <td class="shoping__cart__item">
-                      <img src=${product[i].image}  width="100px" height="100px" alt="">
+                      <img src=${src}  width="100px" height="100px" alt="">
                       <h5>${product[i].name}</h5>
                   </td>
                   <td class="shoping__cart__price">

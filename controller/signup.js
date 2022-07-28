@@ -154,14 +154,14 @@ function SignUpAccount(req, res) {
           //=============================================================
           //=============================================================
           fs.readFile(
-            "./views/login/signup.html",
+            "./views/login/login.html",
             "utf-8",
             (err, data) => {
               if (err) {
                 console.log(err);
               } else {
-                let success = `<p style="text-align: center; color: white; font-size: 30px">Account created successfully</p>`;
-                data = data.replace("{here}", success);
+                // let success = `<p style="text-align: center; color: white; font-size: 30px">Account created successfully</p>`;
+                // data = data.replace("{here}", success);
                 res.writeHead(200, { "Content-Type": "text/html" });
                 res.write(data);
                 return res.end();
