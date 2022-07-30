@@ -66,7 +66,6 @@ function getOrders(userId) {
     });
   });
 }
-<<<<<<< HEAD
 function getTotal(currentUserId, currentOrderId) {
   return new Promise((resolve, reject) => {
     let queryOrders = `select u.id, o.id, p.name, p.price, od.price as total , od.amount
@@ -81,7 +80,6 @@ function getTotal(currentUserId, currentOrderId) {
     });
   });
 }
-=======
 function getProductPrice(productid,amount,productPrice,currentOrderId, callback) {
   let queryGetProductPrice = `select price from products where id = ${productid};`;
   connection.query(queryGetProductPrice, (err, data) => {
@@ -101,7 +99,6 @@ function insertOrder(
   let queryInsertOrder = `insert into orderdetails(product_id,amount,price,orderid) values (${productid},${amount},${price},${currentOrderId});`;
   connection.query(queryInsertOrder, (err, data) => {});
 }
->>>>>>> 53d7b526dcfd5f5fc992085260077b2a679ae580
 
 const server = http.createServer((req, res) => {
   const filesDefences = req.url.match(
@@ -360,7 +357,6 @@ const server = http.createServer((req, res) => {
             let productid = product.productid;
             let productPrice = 0;
             let amount = product.amount;
-<<<<<<< HEAD
             function getProductPrice(
               productid,
               amount,
@@ -393,10 +389,8 @@ const server = http.createServer((req, res) => {
               currentOrderId,
               insertOrder
             );
-=======
          
             getProductPrice(productid,amount,productPrice,currentOrderId,insertOrder)
->>>>>>> 53d7b526dcfd5f5fc992085260077b2a679ae580
             res.writeHead(301, {
               location: `/user?id=${currentUserId}`,
             });
