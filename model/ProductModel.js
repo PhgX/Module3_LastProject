@@ -5,7 +5,7 @@ module.exports = class ProductModel {
 
     static getProduct() {
         return new Promise((resolve, reject) => {
-            let sql = `SELECT p.id, p.name, p.price
+            let sql = `SELECT p.id, p.name, p.price, p.image
                        FROM products p
             `
             Connection.query(sql, (err, result) => {
