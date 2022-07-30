@@ -63,7 +63,7 @@ function SignUpAccount(req, res) {
               console.log(checkresult);
               if (id) {
                 fs.readFile(
-                  "./views/login/SignUpAccount.html",
+                  "./views/login/signup.html",
                   "utf-8",
                   (err, data) => {
                     if (err) {
@@ -88,7 +88,7 @@ function SignUpAccount(req, res) {
               console.log(checkresult);
               if (id) {
                 fs.readFile(
-                  "./views/login/SignUpAccount.html",
+                  "./views/login/signup.html",
                   "utf-8",
                   (err, data) => {
                     if (err) {
@@ -113,7 +113,7 @@ function SignUpAccount(req, res) {
               console.log(checkresult);
               if (id) {
                 fs.readFile(
-                  "./views/login/SignUpAccount.html",
+                  "./views/login/signup.html",
                   "utf-8",
                   (err, data) => {
                     if (err) {
@@ -154,14 +154,14 @@ function SignUpAccount(req, res) {
           //=============================================================
           //=============================================================
           fs.readFile(
-            "./views/login/SignUpAccount.html",
+            "./views/login/login.html",
             "utf-8",
             (err, data) => {
               if (err) {
                 console.log(err);
               } else {
-                let success = `<p style="text-align: center; color: white; font-size: 30px">Account created successfully</p>`;
-                data = data.replace("{here}", success);
+                // let success = `<p style="text-align: center; color: white; font-size: 30px">Account created successfully</p>`;
+                // data = data.replace("{here}", success);
                 res.writeHead(200, { "Content-Type": "text/html" });
                 res.write(data);
                 return res.end();
@@ -171,7 +171,7 @@ function SignUpAccount(req, res) {
         }
       });
     } else if (accountinfo.password != accountinfo.re_password) {
-      fs.readFile("./views/login/SignUpAccount.html", "utf-8", (err, data) => {
+      fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
         if (err) {
           console.log(err);
         } else {
@@ -185,7 +185,7 @@ function SignUpAccount(req, res) {
     } else if (
       ValidatePassword(accountinfo.password, accountinfo.re_password) === false
     ) {
-      fs.readFile("./views/login/SignUpAccount.html", "utf-8", (err, data) => {
+      fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
         if (err) {
           console.log(err);
         } else {
@@ -199,7 +199,7 @@ function SignUpAccount(req, res) {
         }
       });
     } else if (ValidateEmail(accountinfo.email) === false) {
-      fs.readFile("./views/login/SignUpAccount.html", "utf-8", (err, data) => {
+      fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
         if (err) {
           console.log(err);
         } else {
@@ -211,7 +211,7 @@ function SignUpAccount(req, res) {
         }
       });
     } else if (ValidatePhone(accountinfo.phone)) {
-      fs.readFile("./views/login/SignUpAccount.html", "utf-8", (err, data) => {
+      fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
         if (err) {
           console.log(err);
         } else {
