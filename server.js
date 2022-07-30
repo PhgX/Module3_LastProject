@@ -78,6 +78,25 @@ function getTotal(currentUserId) {
     });
   });
 }
+function getProductPrice(productid,amount,productPrice,currentOrderId, callback) {
+  let queryGetProductPrice = `select price from products where id = ${productid};`;
+  connection.query(queryGetProductPrice, (err, data) => {
+    let parseData = qs.parse(data[0]);
+    productPrice = parseData.price;
+    callback(amount, productPrice, productid, currentOrderId);
+  });
+}
+function insertOrder(
+  amount,
+  productPrice,
+  productid,
+  currentOrderId
+) {
+  let price = amount * productPrice;
+  console.log(price);
+  let queryInsertOrder = `insert into orderdetails(product_id,amount,price,orderid) values (${productid},${amount},${price},${currentOrderId});`;
+  connection.query(queryInsertOrder, (err, data) => {});
+}
 
 const server = http.createServer((req, res) => {
   const filesDefences = req.url.match(
@@ -329,7 +348,7 @@ const server = http.createServer((req, res) => {
             }
           });
         } else {
-          console.log("post");
+          // console.log("post");
           let data = "";
           req.on("data", (chunk) => {
             data += chunk;
@@ -371,12 +390,13 @@ const server = http.createServer((req, res) => {
               currentOrderId,
               insertOrder
             );
+         
+            getProductPrice(productid,amount,productPrice,currentOrderId,insertOrder)
             res.writeHead(301, {
               location: `/user?id=${currentUserId}`,
             });
             return res.end();
           });
-
           fs.readFile("./views/home/user.html", "utf-8", async (err, data) => {
             if (err) {
               console.log(err);
@@ -424,7 +444,6 @@ const server = http.createServer((req, res) => {
             }
           });
         }
-
         break;
       }
       case "/cart": {
