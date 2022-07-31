@@ -34,7 +34,7 @@ function SignUpAccount(req, res) {
     };
 
     const ValidatePhone = (phone) => {
-      if (isNaN(phone) === false || phone.split("").length <= 10) {
+      if (isNaN(phone) === false && phone.split("").length === 10) {
         return true;
       } else {
         return false;
@@ -47,7 +47,9 @@ function SignUpAccount(req, res) {
       ValidateEmail(accountinfo.email) &&
       ValidatePhone(accountinfo.phone)
     ) {
-      let insertQuery = `insert into users(username, password, email, name, phone, address) values('${accountinfo.username}', '${accountinfo.password}', '${accountinfo.email}', '${accountinfo.name}', '${accountinfo.phone}', '${accountinfo.address}');`;
+      let insertQuery = `insert into users(username, password, email, name, phone, address) 
+      values('${accountinfo.username}', '${accountinfo.password}', '${accountinfo.email}',
+       '${accountinfo.name}', '${accountinfo.phone}', '${accountinfo.address}');`;
       connection.query(insertQuery, (err, data) => {
         if (err) {
           // console.log(err);
@@ -63,15 +65,16 @@ function SignUpAccount(req, res) {
               console.log(checkresult);
               if (id) {
                 fs.readFile(
-                  "./views/login/SignUpAccount.html",
+                  "./views/login/signup.html",
                   "utf-8",
                   (err, data) => {
                     if (err) {
                       console.log(err);
                     } else {
+                      let success = `<p style="text-align: center; color: white; font-size: 30px">Account already exists</p>`;
+                      data = data.replace("{here}", success);
                       res.writeHead(200, { "Content-Type": "text/html" });
                       res.write(data);
-                      res.write("Tài khoản đã tồn tại");
                       return res.end();
                     }
                   }
@@ -88,15 +91,16 @@ function SignUpAccount(req, res) {
               console.log(checkresult);
               if (id) {
                 fs.readFile(
-                  "./views/login/SignUpAccount.html",
+                  "./views/login/signup.html",
                   "utf-8",
                   (err, data) => {
                     if (err) {
                       console.log(err);
                     } else {
+                      let success = `<p style="text-align: center; color: white; font-size: 30px">The Email was registered</p>`;
+                      data = data.replace("{here}", success);
                       res.writeHead(200, { "Content-Type": "text/html" });
                       res.write(data);
-                      res.write("Email đã được đăng ký");
                       return res.end();
                     }
                   }
@@ -113,15 +117,16 @@ function SignUpAccount(req, res) {
               console.log(checkresult);
               if (id) {
                 fs.readFile(
-                  "./views/login/SignUpAccount.html",
+                  "./views/login/signup.html",
                   "utf-8",
                   (err, data) => {
                     if (err) {
                       console.log(err);
                     } else {
+                      let success = `<p style="text-align: center; color: white; font-size: 30px">Registered phone number</p>`;
+                      data = data.replace("{here}", success);
                       res.writeHead(200, { "Content-Type": "text/html" });
                       res.write(data);
-                      res.write("Số điện thoại đã được đăng ký");
                       return res.end();
                     }
                   }
@@ -129,8 +134,8 @@ function SignUpAccount(req, res) {
               }
             }
           });
-        } else {  
-          // Tạo role cho tài khoản mới===============================        
+        } else {
+          // Tạo role cho tài khoản mới===============================
           let newUserID;
           let userquery1 = `select id from users where username = '${accountinfo.username}'`;
           connection.query(userquery1, (err, data) => {
@@ -139,7 +144,7 @@ function SignUpAccount(req, res) {
             } else {
               let parsedata = qs.parse(data[0]);
               console.log(parsedata);
-              newUserID = parsedata.id;             
+              newUserID = parsedata.id;
             }
           });
           setTimeout(() => {
@@ -148,34 +153,30 @@ function SignUpAccount(req, res) {
             connection.query(userquery2, (err, data) => {
               if (err) {
                 console.log(err);
-              }             
+              }
             });
           }, 100);
           //=============================================================
           //=============================================================
-          fs.readFile(
-            "./views/login/SignUpAccount.html",
-            "utf-8",
-            (err, data) => {
-              if (err) {
-                console.log(err);
-              } else {
-                let success = `<p style="text-align: center; color: white; font-size: 30px">Account created successfully</p>`;
-                data = data.replace("{here}", success);
-                res.writeHead(200, { "Content-Type": "text/html" });
-                res.write(data);
-                return res.end();
-              }
+          fs.readFile("./views/login/login.html", "utf-8", (err, data) => {
+            if (err) {
+              console.log(err);
+            } else {
+              let success = `<p style="text-align: center; color: white; font-size: 30px">Account created successfully</p>`;
+              data = data.replace("{here}", success);
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.write(data);
+              return res.end();
             }
-          );
+          });
         }
       });
     } else if (accountinfo.password != accountinfo.re_password) {
-      fs.readFile("./views/login/SignUpAccount.html", "utf-8", (err, data) => {
+      fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
         if (err) {
           console.log(err);
         } else {
-          let success1 = `<p style="text-align: center; color: white; font-size: 30px">Lỗi! Mật khẩu xác nhận không đúng</p>`;
+          let success1 = `<p style="text-align: center; color: white; font-size: 30px">Error! Confirmation password is incorrect</p>`;
           data = data.replace("{here}", success1);
           res.writeHead(200, { "Content-Type": "text/html" });
           res.write(data);
@@ -185,13 +186,13 @@ function SignUpAccount(req, res) {
     } else if (
       ValidatePassword(accountinfo.password, accountinfo.re_password) === false
     ) {
-      fs.readFile("./views/login/SignUpAccount.html", "utf-8", (err, data) => {
+      fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
         if (err) {
           console.log(err);
         } else {
           let success2 =
-            `<p style="text-align: center; color: white; font-size: 30px">Lỗi! Mật khẩu nhập không đúng yêu cầu\n` +
-            `Mật khẩu có độ dài từ 6 đến 20 ký tự, có ít nhất 1 chữ cái thường, 1 viết hoa và 1 ký tự đặc biệt</p>`;
+            `<p style="text-align: center; color: white; font-size: 30px">Error! The password entered is not correct\n` +
+            `Passwords should be between 6 and 20 characters long, with at least 1 lowercase letter, 1 uppercase letter, and 1 special character.</p>`;
           data = data.replace("{here}", success2);
           res.writeHead(200, { "Content-Type": "text/html" });
           res.write(data);
@@ -199,30 +200,42 @@ function SignUpAccount(req, res) {
         }
       });
     } else if (ValidateEmail(accountinfo.email) === false) {
-      fs.readFile("./views/login/SignUpAccount.html", "utf-8", (err, data) => {
+      fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
         if (err) {
           console.log(err);
         } else {
-          let success3 = `<p style="text-align: center; color: white; font-size: 30px">Lỗi!! Email điền không chính xác</p>`;
+          let success3 = `<p style="text-align: center; color: white; font-size: 30px">Error!! Email entered incorrectly</p>`;
           data = data.replace("{here}", success3);
           res.writeHead(200, { "Content-Type": "text/html" });
           res.write(data);
           return res.end();
         }
       });
-    } else if (ValidatePhone(accountinfo.phone)) {
-      fs.readFile("./views/login/SignUpAccount.html", "utf-8", (err, data) => {
+    } else if (isNaN(accountinfo.phone)) {
+      fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
         if (err) {
           console.log(err);
         } else {
-          let success4 = `<p style="text-align: center; color: white; font-size: 30px">Lỗi!! Số điện thoại điền không chính xác</p>`;
+          let success4 = `<p style="text-align: center; color: white; font-size: 30px">Error!! Incorrect phone number</p>`;
           data = data.replace("{here}", success4);
           res.writeHead(200, { "Content-Type": "text/html" });
           res.write(data);
           return res.end();
         }
       });
-    }
+    } else if (accountinfo.phone.split("").length !== 10 ){
+      fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
+        if (err) {
+          console.log(err);
+        } else {
+          let success4 = `<p style="text-align: center; color: white; font-size: 30px">Error!! Phone number must have 10 digits</p>`;
+          data = data.replace("{here}", success4);
+          res.writeHead(200, { "Content-Type": "text/html" });
+          res.write(data);
+          return res.end();
+        }
+      });
+    } 
   });
 }
 

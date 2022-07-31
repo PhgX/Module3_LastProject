@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+<div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-3">
+        <a class="navbar-brand" href="/">Navbar</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="/render">Show Product</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="/about">About <span class="sr-only">(current)</span></a>
+                </li>
+            </ul>
+            </div>
+    </nav>
+
+    <div class="card card-body">
+        <h3>Update product</h3>
+        <form action="" method="post" id="form" >
+            <input type="hidden" name="id" value="{idUpdate}">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="nameEdit" value="{valueName}"></div>
+            <div class="form-group">
+                <label for="price">Price</label>
+                <input type="number" id="price" name="priceEdit" value="{valuePrice}"></div>
+            <button type="submit" class="btn btn-primary">Update product</button>
+        </form>
+    </div>
+</div>
+</body>
+
+</html>
