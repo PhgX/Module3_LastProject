@@ -24,8 +24,10 @@ const mimeTypes = {
   eot: "text/html",
   svg: "image/avg+xml",
 };
+
 let currentUserId = -1;
 let currentOrderId;
+
 function getCate() {
   return new Promise((resolve, reject) => {
     let queryListCategories = `select name from categories
@@ -39,6 +41,7 @@ function getCate() {
     });
   });
 }
+
 function getProducts() {
   return new Promise((resolve, reject) => {
     let queryProducts = `select p.name, p.price, p.id, p.image, c.name as catename
@@ -52,6 +55,7 @@ function getProducts() {
     });
   });
 }
+
 function getOrders(userId) {
   return new Promise((resolve, reject) => {
     let queryOrders = `select u.id, p.name, p.price, p.image, od.price as total, od.amount
@@ -66,6 +70,7 @@ function getOrders(userId) {
     });
   });
 }
+
 function getTotal(currentUserId) {
   return new Promise((resolve, reject) => {
     let queryOrders = `call getOrderTotal(${currentUserId});`;
@@ -78,6 +83,7 @@ function getTotal(currentUserId) {
     });
   });
 }
+
 function getProductPrice(productid,amount,productPrice,currentOrderId, callback) {
   let queryGetProductPrice = `select price from products where id = ${productid};`;
   connection.query(queryGetProductPrice, (err, data) => {
@@ -86,6 +92,7 @@ function getProductPrice(productid,amount,productPrice,currentOrderId, callback)
     callback(amount, productPrice, productid, currentOrderId);
   });
 }
+
 function insertOrder(
   amount,
   productPrice,
@@ -408,10 +415,7 @@ const server = http.createServer((req, res) => {
               let topPage = `Welcome user`;
               for (let i = 0; i < categories.length; i++) {
                 let filter = categories[i].name;
-                filter = filter.toLowerCase();
-                // if (filter.includes(" ")) {
-                //   filter = filter.replace(" ","-");
-                // }
+                filter = filter.toLowerCase();                
                 cateText += `<li data-filter=".${filter}">${categories[i].name}</li>`;
               }
               for (let i = 0; i < products.length; i++) {
@@ -457,18 +461,10 @@ const server = http.createServer((req, res) => {
           if (err) {
             console.log("File NotFound!");
           } else {
-            let sum = 0;
             let product = await getOrders(currentUserId);
             let sumObj = await getTotal(currentUserId);
             let total = qs.parse(sumObj[0]);
             console.log(total[0].total);
-            // let total = await getTotal(currentUserId,currentOrderId);
-            // console.log(total)
-            // for (let i = 0;i<total.length;i++) {
-            //   sum += total[i].total
-
-            // }
-            // console.log(sum)
             if (product.length > 0) {
               for (let i = 0; i < product.length; i++) {
                 let src = 'assets/home/img/product/'+product[i].image

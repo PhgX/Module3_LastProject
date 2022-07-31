@@ -34,7 +34,7 @@ function SignUpAccount(req, res) {
     };
 
     const ValidatePhone = (phone) => {
-      if (isNaN(phone) === false || phone.split("").length <= 10) {
+      if (isNaN(phone) === false && phone.split("").length === 10) {
         return true;
       } else {
         return false;
@@ -47,7 +47,9 @@ function SignUpAccount(req, res) {
       ValidateEmail(accountinfo.email) &&
       ValidatePhone(accountinfo.phone)
     ) {
-      let insertQuery = `insert into users(username, password, email, name, phone, address) values('${accountinfo.username}', '${accountinfo.password}', '${accountinfo.email}', '${accountinfo.name}', '${accountinfo.phone}', '${accountinfo.address}');`;
+      let insertQuery = `insert into users(username, password, email, name, phone, address) 
+      values('${accountinfo.username}', '${accountinfo.password}', '${accountinfo.email}',
+       '${accountinfo.name}', '${accountinfo.phone}', '${accountinfo.address}');`;
       connection.query(insertQuery, (err, data) => {
         if (err) {
           // console.log(err);
@@ -69,9 +71,10 @@ function SignUpAccount(req, res) {
                     if (err) {
                       console.log(err);
                     } else {
+                      let success = `<p style="text-align: center; color: white; font-size: 30px">Account already exists</p>`;
+                      data = data.replace("{here}", success);
                       res.writeHead(200, { "Content-Type": "text/html" });
                       res.write(data);
-                      res.write("Account already exists");
                       return res.end();
                     }
                   }
@@ -94,9 +97,10 @@ function SignUpAccount(req, res) {
                     if (err) {
                       console.log(err);
                     } else {
+                      let success = `<p style="text-align: center; color: white; font-size: 30px">The Email was registered</p>`;
+                      data = data.replace("{here}", success);
                       res.writeHead(200, { "Content-Type": "text/html" });
                       res.write(data);
-                      res.write("The Email was registered");
                       return res.end();
                     }
                   }
@@ -119,9 +123,10 @@ function SignUpAccount(req, res) {
                     if (err) {
                       console.log(err);
                     } else {
+                      let success = `<p style="text-align: center; color: white; font-size: 30px">Registered phone number</p>`;
+                      data = data.replace("{here}", success);
                       res.writeHead(200, { "Content-Type": "text/html" });
                       res.write(data);
-                      res.write("Registered phone number");
                       return res.end();
                     }
                   }
@@ -129,8 +134,8 @@ function SignUpAccount(req, res) {
               }
             }
           });
-        } else {  
-          // Tạo role cho tài khoản mới===============================        
+        } else {
+          // Tạo role cho tài khoản mới===============================
           let newUserID;
           let userquery1 = `select id from users where username = '${accountinfo.username}'`;
           connection.query(userquery1, (err, data) => {
@@ -139,7 +144,7 @@ function SignUpAccount(req, res) {
             } else {
               let parsedata = qs.parse(data[0]);
               console.log(parsedata);
-              newUserID = parsedata.id;             
+              newUserID = parsedata.id;
             }
           });
           setTimeout(() => {
@@ -148,26 +153,22 @@ function SignUpAccount(req, res) {
             connection.query(userquery2, (err, data) => {
               if (err) {
                 console.log(err);
-              }             
+              }
             });
           }, 100);
           //=============================================================
           //=============================================================
-          fs.readFile(
-            "./views/login/login.html",
-            "utf-8",
-            (err, data) => {
-              if (err) {
-                console.log(err);
-              } else {
-                // let success = `<p style="text-align: center; color: white; font-size: 30px">Account created successfully</p>`;
-                // data = data.replace("{here}", success);
-                res.writeHead(200, { "Content-Type": "text/html" });
-                res.write(data);
-                return res.end();
-              }
+          fs.readFile("./views/login/login.html", "utf-8", (err, data) => {
+            if (err) {
+              console.log(err);
+            } else {
+              let success = `<p style="text-align: center; color: white; font-size: 30px">Account created successfully</p>`;
+              data = data.replace("{here}", success);
+              res.writeHead(200, { "Content-Type": "text/html" });
+              res.write(data);
+              return res.end();
             }
-          );
+          });
         }
       });
     } else if (accountinfo.password != accountinfo.re_password) {
@@ -210,7 +211,7 @@ function SignUpAccount(req, res) {
           return res.end();
         }
       });
-    } else if (ValidatePhone(accountinfo.phone)) {
+    } else if (isNaN(accountinfo.phone)) {
       fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
         if (err) {
           console.log(err);
@@ -222,7 +223,19 @@ function SignUpAccount(req, res) {
           return res.end();
         }
       });
-    }
+    } else if (accountinfo.phone.split("").length !== 10 ){
+      fs.readFile("./views/login/signup.html", "utf-8", (err, data) => {
+        if (err) {
+          console.log(err);
+        } else {
+          let success4 = `<p style="text-align: center; color: white; font-size: 30px">Error!! Phone number must have 10 digits</p>`;
+          data = data.replace("{here}", success4);
+          res.writeHead(200, { "Content-Type": "text/html" });
+          res.write(data);
+          return res.end();
+        }
+      });
+    } 
   });
 }
 
