@@ -17,7 +17,7 @@ class LoginController {
       let logindata = qs.parse(data);
       console.log(logindata);
       let stringUserName = logindata.username.toString();
-      let userquery = `select * from users where username = '${stringUserName}' and password = '${logindata.password}';`;
+      let userquery = `select * from users where username = '${stringUserName}' and password = '${logindata.password}' or email = '${stringUserName}' and password = '${logindata.password}';`;
 
       this.connection.query(userquery, (err, data) => {
         if (err) {
@@ -33,13 +33,13 @@ class LoginController {
                 res.writeHead(200, { "Content-Type": "text/html" });
 
                 let text = `<p style="text-align: center; color: white; font-size: 30px">Tài khoản không tồn tại hoặc nhập sai mật khẩu</p>`;
-                data = data.replace("{here}", text);
+                data = data.replace("{here}", text);``
                 res.write(data);
                 return res.end();
               }
             });
           } else {
-            let rolequery = `select ur.role_id from users u join userrole ur on u.id = ur.user_id where username = '${stringUserName}' and password = '${logindata.password}';`;
+            let rolequery = `select ur.role_id from users u join userrole ur on u.id = ur.user_id where username = '${stringUserName}' and password = '${logindata.password}' or email = '${stringUserName}' and password = '${logindata.password}';`;
             this.connection.query(rolequery, (err, data) => {
               console.log(parseData);
               if (err) {

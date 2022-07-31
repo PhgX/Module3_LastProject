@@ -25,8 +25,10 @@ const mimeTypes = {
   eot: "text/html",
   svg: "image/avg+xml",
 };
+
 let currentUserId = -1;
 let currentOrderId;
+
 function getCate() {
   return new Promise((resolve, reject) => {
     let queryListCategories = `select name from categories
@@ -40,9 +42,10 @@ function getCate() {
     });
   });
 }
+
 function getProducts() {
   return new Promise((resolve, reject) => {
-    let queryProducts = `select p.name, p.price, p.id, c.name as catename
+    let queryProducts = `select p.name, p.price, p.id, p.image, c.name as catename
       from products p join categories c on p.category_id = c.id;`;
     connection.query(queryProducts, (err, data) => {
       if (err) {
@@ -53,9 +56,10 @@ function getProducts() {
     });
   });
 }
+
 function getOrders(userId) {
   return new Promise((resolve, reject) => {
-    let queryOrders = `select u.id, p.name, p.price, od.price as total, od.amount
+    let queryOrders = `select u.id, p.name, p.price, p.image, od.price as total, od.amount
     from users u join orders o on u.id = o.user_id join orderdetails od on o.id = od.orderid join products p on od.product_id = p.id
     where u.id = ${userId} ;`;
     connection.query(queryOrders, (err, data) => {
@@ -67,6 +71,20 @@ function getOrders(userId) {
     });
   });
 }
+
+function getTotal(currentUserId) {
+  return new Promise((resolve, reject) => {
+    let queryOrders = `call getOrderTotal(${currentUserId});`;
+    connection.query(queryOrders, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
 function getProductPrice(productid,amount,productPrice,currentOrderId, callback) {
   let queryGetProductPrice = `select price from products where id = ${productid};`;
   connection.query(queryGetProductPrice, (err, data) => {
@@ -75,6 +93,7 @@ function getProductPrice(productid,amount,productPrice,currentOrderId, callback)
     callback(amount, productPrice, productid, currentOrderId);
   });
 }
+
 function insertOrder(
   amount,
   productPrice,
@@ -126,10 +145,11 @@ const server = http.createServer((req, res) => {
             }
             for (let i = 0; i < products.length; i++) {
               let filter = products[i].catename;
+              let src = 'assets/home/img/product/'+products[i].image
               filter = filter.toLowerCase();
               productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
             <div class="featured__item">
-                <div class="featured__item__pic set-bg" data-setbg="assets/home/img/featured/feature-1.jpg">
+                <div class="featured__item__pic set-bg" data-setbg=${src}>
                 </div>
                 <div class="featured__item__text">
                     <h6><a href="#">${products[i].name}</a></h6>
@@ -189,15 +209,18 @@ const server = http.createServer((req, res) => {
             } else {
               let html = "";
               listProduct.forEach((product, index) => {
+                let src = 'assets/home/img/product/'+product.image
                 html += "<tr>";
                 html += `<td >${product.id}</td>`;
                 html += `<td >${product.name}</td>`;
                 html += `<td>${product.price}</td>`;
-
+                html += `<td><img src=${src} width="100px" height="100px"></td>`;
                 html += `<td>
-                                <button type="button" value="${product.id}" class="btn btn-danger"> <a href="/products/delete?id=${product.id}">Delete</a></button>
+                                <button type="button" class="btn btn-danger"> <a href="/products/remove?id=${product.id}">Delete</a></button>
                
-                                <button type="button" value="${product.id}" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
+                                <button type="button" class="btn btn-warning"><a href="/products/update?id=${product.id}">Update</a></button>
+
+                                <button type="button" class="btn btn-warning"><a href="/admin/create">Create</a></button>
                             </td>`;
 
                 html += "</tr>";
@@ -211,6 +234,69 @@ const server = http.createServer((req, res) => {
         });
         break;
       }
+      case "/products/update": {
+        if (req.method === "GET") {
+          let parseUrl = url.parse(req.url, true);
+          let idUpdate = qs.parse(parseUrl.query).id;
+
+          ProductModel.findProduct(idUpdate)
+            .then((result) => {
+              console.log(result);
+              fs.readFile("./views/home/update.html", "utf-8", (err, data) => {
+                if (err) {
+                  console.log(err);
+                }
+                res.writeHead(200, { "Content-Type": "text/html" });
+                data = data.replace("{idUpdate}", `${idUpdate}`);
+                data = data.replace("{valueName}", `${result[0]["name"]}`);
+                data = data.replace("{valuePrice}", `${result[0]["price"]}`);
+
+                res.write(data);
+                res.end();
+              });
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+
+          // fs.readFile('./views/home/update.html', "utf-8",(err,data)=>{
+          //   if(err){
+          //     console.log(err);
+          //   }
+          //   res.writeHead(200, { "Content-Type": "text/html" });
+          //   data=data.replace('{idUpdate}',`${idUpdate}`)
+          //   res.write(data);
+          //   res.end();
+          // })
+        } else {
+          //b1: tim id update ,lay gia tri new name , new price
+
+          let data = "";
+          req.on("data", (chunk) => {
+            data += chunk;
+            // console.log(data)
+          });
+          req.on("end", async () => {
+            let product = await qs.parse(data);
+            // console.log({product})
+            let idUpdate = product.id;
+            let newName = product.nameEdit;
+            let newPrice = product.priceEdit;
+
+            //b2:lay idUpdate newNameProduct newNamePrice sua trong co so su lieu
+            await ProductModel.updateProduct(idUpdate, newName, newPrice)
+              .then((result) => console.log(result))
+              .catch((err) => console.log(err));
+
+            //b3:render giao dien
+            res.writeHead(301, { location: "/admin" });
+            res.end();
+          });
+        }
+
+        break;
+      }
+
       case "/user": {
         let query = qs.parse(urlParse.query);
         let idUpdate = query.id;
@@ -240,11 +326,12 @@ const server = http.createServer((req, res) => {
                 cateText += `<li data-filter=".${filter}">${categories[i].name}</li>`;
               }
               for (let i = 0; i < products.length; i++) {
+                let src = 'assets/home/img/product/'+products[i].image
                 let filter = products[i].catename;
                 filter = filter.toLowerCase();
                 productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
                   <div class="featured__item">
-                      <div class="featured__item__pic set-bg" data-setbg="assets/home/img/featured/feature-1.jpg">
+                      <div class="featured__item__pic set-bg" data-setbg=${src}>
                           <ul class="featured__item__pic__hover">
                           <form action="/user?id=${currentUserId}" method = "post">
                           <input type="number"  placeholder="Amount" name="amount" id="amount" >
@@ -279,6 +366,38 @@ const server = http.createServer((req, res) => {
             let productid = product.productid;
             let productPrice = 0;
             let amount = product.amount;
+            function getProductPrice(
+              productid,
+              amount,
+              productPrice,
+              currentOrderId,
+              callback
+            ) {
+              let queryGetProductPrice = `select price from products where id = ${productid};`;
+              connection.query(queryGetProductPrice, (err, data) => {
+                let parseData = qs.parse(data[0]);
+                productPrice = parseData.price;
+                callback(amount, productPrice, productid, currentOrderId);
+              });
+            }
+            function insertOrder(
+              amount,
+              productPrice,
+              productid,
+              currentOrderId
+            ) {
+              let price = amount * productPrice;
+              console.log(price);
+              let queryInsertOrder = `insert into orderdetails(product_id,amount,price,orderid) values (${productid},${amount},${price},${currentOrderId});`;
+              connection.query(queryInsertOrder, (err, data) => {});
+            }
+            getProductPrice(
+              productid,
+              amount,
+              productPrice,
+              currentOrderId,
+              insertOrder
+            );
          
             getProductPrice(productid,amount,productPrice,currentOrderId,insertOrder)
             res.writeHead(301, {
@@ -297,18 +416,16 @@ const server = http.createServer((req, res) => {
               let topPage = `Welcome user`;
               for (let i = 0; i < categories.length; i++) {
                 let filter = categories[i].name;
-                filter = filter.toLowerCase();
-                // if (filter.includes(" ")) {
-                //   filter = filter.replace(" ","-");
-                // }
+                filter = filter.toLowerCase();                
                 cateText += `<li data-filter=".${filter}">${categories[i].name}</li>`;
               }
               for (let i = 0; i < products.length; i++) {
+                let src = 'assets/home/img/product/'+products[i].image
                 let filter = products[i].catename;
                 filter = filter.toLowerCase();
                 productText += `<div class="col-lg-3 col-md-4 col-sm-6 mix ${filter}">
                   <div class="featured__item">
-                      <div class="featured__item__pic set-bg" data-setbg="assets/home/img/featured/feature-1.jpg">
+                      <div class="featured__item__pic set-bg" data-setbg=${src}>
                           <ul class="featured__item__pic__hover">
                           <form action="/user?id=${currentUserId}" method = "post">
                           <input type="number"  placeholder="Amount" name="amount" id="amount" >
@@ -334,22 +451,27 @@ const server = http.createServer((req, res) => {
         }
         break;
       }
-      case '/cart' : {
+      case "/cart": {
         let query = qs.parse(urlParse.query);
         let idUpdate = query.id;
         currentUserId = idUpdate;
         let cartText = ``;
+        let continueBuy = `<li><a href="/user?id=${currentUserId}">Buy</a></li>`;
         let continueShoppingText = `<a href="/user?id=${currentUserId}" class="primary-btn cart-btn">CONTINUE SHOPPING</a>`;
-        fs.readFile('views/home/cart.html', 'utf-8', async (err, data) => {
+        fs.readFile("views/home/cart.html", "utf-8", async (err, data) => {
           if (err) {
-              console.log('File NotFound!');
+            console.log("File NotFound!");
           } else {
-              let product = await getOrders(currentUserId);
-              if (product.length > 0) {
-                for (let i = 0; i < product.length; i++) {
-                  cartText += `<tr>
+            let product = await getOrders(currentUserId);
+            let sumObj = await getTotal(currentUserId);
+            let total = qs.parse(sumObj[0]);
+            console.log(total[0].total);
+            if (product.length > 0) {
+              for (let i = 0; i < product.length; i++) {
+                let src = 'assets/home/img/product/'+product[i].image
+                cartText += `<tr>
                   <td class="shoping__cart__item">
-                      <img src="assets/home/img/product/product-1.jpg" alt="">
+                      <img src=${src}  width="100px" height="100px" alt="">
                       <h5>${product[i].name}</h5>
                   </td>
                   <td class="shoping__cart__price">
@@ -362,20 +484,93 @@ const server = http.createServer((req, res) => {
                   ${product[i].total}
                   </td>
                   <td class="shoping__cart__item__close">
-                      <span class="icon_close"></span>
+                    <a href= "/">  <span class="icon_close"></span></a>
                   </td>
-              </tr>`
-                }
+              </tr>`;
               }
-              data = data.replace("{continue-shopping}", continueShoppingText);
-              data = data.replace("{cart}", cartText);
-              res.writeHead(200, {'Content-Type': 'text/html'});
-              res.write(data);
-              return res.end();
+            }
+
+            data = data.replace("{continue-buy}", continueBuy);
+            data = data.replace("{Total-Price}", total[0].total);
+            data = data.replace("{continue-shopping}", continueShoppingText);
+            data = data.replace("{cart}", cartText);
+            res.writeHead(200, { "Content-Type": "text/html" });
+            res.write(data);
+            return res.end();
           }
-      });
-        break
+        });
+        break;
       }
+      case "/admin/create": {
+        if (req.method === "GET") {
+          fs.readFile(
+            "./views/home/admin-create.html",
+            "utf-8",
+            (err, data) => {
+              if (err) {
+                console.log(err);
+              } else {
+                res.writeHead(200, { "Content-Type": "text/html" });
+                res.write(data);
+                return res.end();
+              }
+            }
+          );
+        } else {
+          let data = "";
+          req.on("data", (chunk) => {
+            data += chunk;
+          });
+          req.on("end", () => {
+            let product = qs.parse(data);
+            console.log(product);
+            let insertQuery = `insert into products(name,price,discount_id,image,category_id) VALUES ('${product.name}', ${product.price}, ${product.Discount_id}, '${product.Image}',${product.Category_id})`;
+            // let form = new formidable.IncomingForm();
+            // form.uploadDir = "./views/home/upload";
+            // form.parse(req, (err, fields, files) => {
+            //   let oldpath = files.image.path;
+            //   let newpath = "./views/home/upload/" + files.image.name;
+            //   fs.rename(oldpath, newpath, err => {
+            //     if (err) throw err;
+            //   });
+            // });
+            connection.query(insertQuery, (err, data) => {
+              if (err) {
+                console.log(err);
+              } else {
+                console.log("insert success");
+                res.writeHead(302, { Location: "/admin" });
+                res.end();
+              }
+            });
+          });
+        }
+        break;
+      }
+      case "/products/remove": {
+        // b1: tìm id xoá
+
+        //lấy toàn bộ url /product/delete?id = `${product.id};
+        const parseUrl = url.parse(req.url, true);
+        // lấy sau dấu ? và biến chuỗi query thành object {id:product.id}
+        let queryString = qs.parse(parseUrl.query);
+        //lấy ra id xoá
+        const idDelete = queryString.id;
+
+        //b2: lấy dc id xoá, tiến hành xoá trong csdl
+
+        ProductModel.deleteProduct(idDelete)
+          .then((result) => {
+            console.log(result);
+          })
+          .catch();
+        //b3: render lại giao diện.
+        res.writeHead(301, { location: "/admin" });
+        res.end();
+
+        break;
+      }
+
     }
   }
 });
