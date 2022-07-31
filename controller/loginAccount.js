@@ -1,7 +1,9 @@
 const fs = require("fs");
 const qs = require("qs");
+const localStorage = require('local-storage');
 
 const Connection = require("../model/connection.js");
+let connection = Connection.createConnection({ multipleStatements: true });
 
 class LoginController {
   constructor() {

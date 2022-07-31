@@ -4,8 +4,9 @@ const url = require("url");
 const qs = require("qs");
 const checkRegister = require("./controller/signup");
 const Connection = require("./model/connection");
-const LoginControl = require("./controller/loginAccount");
-const ProductModel = require("./model/ProductModel");
+const LoginControl = require('./controller/loginAccount');
+const ProductModel = require('./model/ProductModel');
+const localStorage = require('local-storage');
 
 let connection = Connection.createConnection({ multipleStatements: true });
 const loginController = new LoginControl();
